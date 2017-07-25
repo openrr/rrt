@@ -16,12 +16,10 @@ log = "0.3.8"
 env_logger = "0.4.3"
 #clippy = { version = "*", optional = true }
 
-[features]
-default = []
+#[features]
+#default = []
 
 [dev-dependencies]
-approx   = "*"
-alga     = "*"
-nalgebra = "*"
-ncollide = "*"
-kiss3d = "*"
+nalgebra = "0.12.0"
+ncollide = "0.12.0"
+kiss3d = "0.9.0"
