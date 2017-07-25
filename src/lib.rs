@@ -1,6 +1,32 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+//! # Dual RRT Connect
+//!
+//!
+//! ## Examples
+//!
+//! ```
+//! extern crate rand;
+//! extern crate rrt;
+//! fn main() {
+//!   use rand::distributions::{IndependentSample, Range};
+//!   let result = rrt::dual_rrt_connect(&[-1.2, 0.0],
+//!                                      &[1.2, 0.0],
+//!                                     |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+//!                                     || {
+//!                                         let between = Range::new(-2.0, 2.0);
+//!                                         let mut rng = rand::thread_rng();
+//!                                         vec![between.ind_sample(&mut rng),
+//!                                              between.ind_sample(&mut rng)]
+//!                                     },
+//!                                     0.2,
+//!                                     1000)
+//!               .unwrap();
+//!   println!("{:?}", result);
+//!   assert!(result.len() >= 4);
+//! }
+//! ```
 extern crate rand;
 extern crate kdtree;
 #[macro_use]
@@ -61,11 +87,7 @@ impl Tree {
     pub fn get_nearest_id(&self, q: &[f64]) -> usize {
         *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
     }
-    pub fn extend<FF>(&mut self,
-                      q_target: &[f64],
-                      extend_length: f64,
-                      is_feasible: &FF)
-                      -> ExtendStatus
+    pub fn extend<FF>(&mut self, q_target: &[f64], extend_length: f64, is_free: &FF) -> ExtendStatus
         where FF: Fn(&[f64]) -> bool
     {
         assert!(extend_length > 0.0);
@@ -82,7 +104,7 @@ impl Tree {
                 .collect::<Vec<_>>()
         };
         info!("q_new={:?}", q_new);
-        if is_feasible(&q_new) {
+        if is_free(&q_new) {
             let new_id = self.add_vertex(&q_new);
             self.add_edge(nearest_id, new_id);
             if squared_euclidean(&q_new, q_target).sqrt() < extend_length {
@@ -97,13 +119,13 @@ impl Tree {
     pub fn connect<FF>(&mut self,
                        q_target: &[f64],
                        extend_length: f64,
-                       is_feasible: &FF)
+                       is_free: &FF)
                        -> ExtendStatus
         where FF: Fn(&[f64]) -> bool
     {
         loop {
             info!("connecting...{:?}", q_target);
-            match self.extend(q_target, extend_length, is_feasible) {
+            match self.extend(q_target, extend_length, is_free) {
                 ExtendStatus::Trapped => return ExtendStatus::Trapped,
                 ExtendStatus::Reached(id) => return ExtendStatus::Reached(id),
                 ExtendStatus::Advanced(_) => {}
@@ -121,9 +143,10 @@ impl Tree {
     }
 }
 
+/// search the path from start to goal which is free, using random_sample function
 pub fn dual_rrt_connect<FF, FR>(start: &[f64],
                                 goal: &[f64],
-                                is_feasible: FF,
+                                is_free: FF,
                                 random_sample: FR,
                                 extend_length: f64,
                                 num_max_try: usize)
@@ -140,14 +163,14 @@ pub fn dual_rrt_connect<FF, FR>(start: &[f64],
         info!("tree_a = {:?}", tree_a.vertices.len());
         info!("tree_b = {:?}", tree_b.vertices.len());
         let q_rand = random_sample();
-        let extend_status = tree_a.extend(&q_rand, extend_length, &is_feasible);
+        let extend_status = tree_a.extend(&q_rand, extend_length, &is_free);
         match extend_status {
             ExtendStatus::Trapped => {}
             ExtendStatus::Advanced(new_id) |
             ExtendStatus::Reached(new_id) => {
                 let q_new = tree_a.vertices[new_id].data.clone();
                 if let ExtendStatus::Reached(reach_id) =
-                    tree_b.connect(&q_new, extend_length, &is_feasible) {
+                    tree_b.connect(&q_new, extend_length, &is_free) {
                     let mut a_all = tree_a.get_until_root(new_id);
                     let mut b_all = tree_b.get_until_root(reach_id);
                     a_all.reverse();
@@ -168,29 +191,16 @@ pub fn dual_rrt_connect<FF, FR>(start: &[f64],
 fn it_works() {
     extern crate env_logger;
     use rand::distributions::{IndependentSample, Range};
-
-    pub struct BoxProblem {}
-    impl BoxProblem {
-        fn is_feasible(&self, point: &[f64]) -> bool {
-            !(point[0].abs() < 1.0 && point[1].abs() < 1.0)
-        }
-        fn random_sample(&self) -> Vec<f64> {
-            let between = Range::new(-2.0, 2.0);
-            let mut rng = rand::thread_rng();
-            vec![between.ind_sample(&mut rng), between.ind_sample(&mut rng)]
-        }
-    }
-
-    let p = BoxProblem {};
-    let start = [-1.2, 0.0];
-    let goal = [1.2, 0.0];
-    assert!(p.is_feasible(&start));
-    assert!(p.is_feasible(&goal));
-    let result = dual_rrt_connect(&start,
-                                  &goal,
-                                  |x: &[f64]| p.is_feasible(x),
-                                  || p.random_sample(),
-                                  0.5,
+    let result = dual_rrt_connect(&[-1.2, 0.0],
+                                  &[1.2, 0.0],
+                                  |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+                                  || {
+                                      let between = Range::new(-2.0, 2.0);
+                                      let mut rng = rand::thread_rng();
+                                      vec![between.ind_sample(&mut rng),
+                                           between.ind_sample(&mut rng)]
+                                  },
+                                  0.2,
                                   1000)
             .unwrap();
     println!("{:?}", result);
