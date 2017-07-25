@@ -1,11 +1,11 @@
 [package]
 name = "rrt"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Takashi Ogura <t.ogura@gmail.com>"]
 description = "Path finding using dual-RRT connect"
 license = "Apache-2.0"
 keywords = ["search", "path-finding", "rrt", "robotics"]
-categories = ["Algorithms"]
+categories = ["algorithms"]
 repository = "https://github.com/OTL/rrt"
 documentation = "http://docs.rs/rrt"
 
