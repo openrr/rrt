@@ -1,6 +1,6 @@
 # rrt
 
-rrt library implemented by rust
+RRT (Rapidly-exploring Random Tree) library implemented by rust
 
 ## Using this crate
 
@@ -21,6 +21,8 @@ cargo run --release --example collision_avoid
 
 Below is the simplest example.
 It search the path from [-1.2, 0.0] to [1.2, 0.0] avoiding [-1, -1] - [1, 1] region.
+There are only one function `dual_rrt_connect`, which takes `start`, `goal`,
+`is free function`, `random generation function`, `unit length of extend`, `max repeat num`.
 
 ```rust
 extern crate rand;

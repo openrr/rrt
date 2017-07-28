@@ -1,8 +1,10 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
-//! # Dual RRT Connect
+//! # RRT
 //!
+//! RRT (Rapidly-exploring Random Tree) library implemented by rust.
+//! Only Dual RRT Connect is supported.
 //!
 //! ## Examples
 //!
@@ -41,6 +43,7 @@ pub enum ExtendStatus {
     Trapped,
 }
 
+/// Node that contains user data
 #[derive(Debug, Clone)]
 pub struct Node<T> {
     parent_id: Option<usize>,
@@ -58,6 +61,7 @@ impl<T> Node<T> {
     }
 }
 
+/// RRT
 #[derive(Debug)]
 pub struct Tree {
     pub dim: usize,
