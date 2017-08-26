@@ -1,6 +1,6 @@
 # rrt
 
-RRT (Rapidly-exploring Random Tree) library implemented by rust
+RRT (Rapidly-exploring Random Tree) library in Rust
 
 ## Using this crate
 
@@ -13,7 +13,7 @@ rrt = "0.1.0"
 
 ## Examples
 
-You can try an example to solve collision avoid problem by bellow command.
+There are an example to solve collision avoid problem.
 
 ```bash
 cargo run --release --example collision_avoid
