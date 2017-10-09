@@ -91,8 +91,12 @@ impl Tree {
     pub fn get_nearest_id(&self, q: &[f64]) -> usize {
         *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
     }
-    pub fn extend<FF>(&mut self, q_target: &[f64], extend_length: f64, is_free: &FF) -> ExtendStatus
-        where FF: Fn(&[f64]) -> bool
+    pub fn extend<FF>(&mut self,
+                      q_target: &[f64],
+                      extend_length: f64,
+                      is_free: &mut FF)
+                      -> ExtendStatus
+        where FF: FnMut(&[f64]) -> bool
     {
         assert!(extend_length > 0.0);
         let nearest_id = self.get_nearest_id(q_target);
@@ -123,9 +127,9 @@ impl Tree {
     pub fn connect<FF>(&mut self,
                        q_target: &[f64],
                        extend_length: f64,
-                       is_free: &FF)
+                       is_free: &mut FF)
                        -> ExtendStatus
-        where FF: Fn(&[f64]) -> bool
+        where FF: FnMut(&[f64]) -> bool
     {
         loop {
             info!("connecting...{:?}", q_target);
@@ -150,12 +154,12 @@ impl Tree {
 /// search the path from start to goal which is free, using random_sample function
 pub fn dual_rrt_connect<FF, FR>(start: &[f64],
                                 goal: &[f64],
-                                is_free: FF,
+                                mut is_free: FF,
                                 random_sample: FR,
                                 extend_length: f64,
                                 num_max_try: usize)
                                 -> Result<Vec<Vec<f64>>, String>
-    where FF: Fn(&[f64]) -> bool,
+    where FF: FnMut(&[f64]) -> bool,
           FR: Fn() -> Vec<f64>
 {
     assert_eq!(start.len(), goal.len());
@@ -167,14 +171,14 @@ pub fn dual_rrt_connect<FF, FR>(start: &[f64],
         info!("tree_a = {:?}", tree_a.vertices.len());
         info!("tree_b = {:?}", tree_b.vertices.len());
         let q_rand = random_sample();
-        let extend_status = tree_a.extend(&q_rand, extend_length, &is_free);
+        let extend_status = tree_a.extend(&q_rand, extend_length, &mut is_free);
         match extend_status {
             ExtendStatus::Trapped => {}
             ExtendStatus::Advanced(new_id) |
             ExtendStatus::Reached(new_id) => {
                 let q_new = tree_a.vertices[new_id].data.clone();
                 if let ExtendStatus::Reached(reach_id) =
-                    tree_b.connect(&q_new, extend_length, &is_free) {
+                    tree_b.connect(&q_new, extend_length, &mut is_free) {
                     let mut a_all = tree_a.get_until_root(new_id);
                     let mut b_all = tree_b.get_until_root(reach_id);
                     a_all.reverse();

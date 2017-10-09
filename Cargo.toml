@@ -1,6 +1,6 @@
 [package]
 name = "rrt"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Takashi Ogura <t.ogura@gmail.com>"]
 description = "Path finding using dual-RRT connect"
 license = "Apache-2.0"
@@ -20,6 +20,6 @@ env_logger = "0.4.3"
 #default = []
 
 [dev-dependencies]
-nalgebra = "0.12.0"
-ncollide = "0.12.0"
-kiss3d = "0.9.0"
+nalgebra = "0.13.0"
+ncollide = "0.13.0"
+kiss3d = "0.11.0"
