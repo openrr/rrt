@@ -235,6 +235,9 @@ pub fn smooth_path<FF>(
                 for _ in 0..(ind2 - ind1 - 1) {
                     path.remove(remove_index);
                 }
+                if path.len() == 2 {
+                    return;
+                }
                 is_searching = false;
             } else {
                 let check_point = base_point
@@ -274,8 +277,12 @@ fn it_works() {
     ).unwrap();
     println!("{:?}", result);
     assert!(result.len() >= 4);
-    smooth_path(&mut result, |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
-                0.2, 100);
+    smooth_path(
+        &mut result,
+        |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+        0.2,
+        100,
+    );
     println!("{:?}", result);
     assert!(result.len() >= 3);
 }
