@@ -36,6 +36,7 @@ extern crate log;
 
 use kdtree::distance::squared_euclidean;
 use std::mem;
+use rand::distributions::{IndependentSample, Range};
 
 pub enum ExtendStatus {
     Reached(usize),
@@ -204,6 +205,7 @@ where
     Err("failed".to_string())
 }
 
+/// select random two points, and try to connect.
 pub fn smooth_path<FF>(
     path: &mut Vec<Vec<f64>>,
     mut is_free: FF,
@@ -212,42 +214,44 @@ pub fn smooth_path<FF>(
 ) where
     FF: FnMut(&[f64]) -> bool,
 {
-    // select random two points
-    // try to connect
     if path.len() < 3 {
         return;
     }
     let mut rng = rand::thread_rng();
     for _ in 0..num_max_try {
-        let two_ind = rand::sample(&mut rng, 0..(path.len() - 1), 2);
-        let mut ind1 = two_ind[0];
-        let mut ind2 = two_ind[1];
-        if ind1 > ind2 {
-            std::mem::swap(&mut ind1, &mut ind2);
-        }
-        let point2 = path[ind2].clone();
+        let range1 = Range::new(0, path.len() - 2);
+        let ind1 = range1.ind_sample(&mut rng);
+        let range2 = Range::new(ind1 + 2, path.len());
+        let ind2 = range2.ind_sample(&mut rng);
         let mut base_point = path[ind1].clone();
-        loop {
+        let point2 = path[ind2].clone();
+        let mut is_searching = true;
+        while is_searching {
             let diff_dist = squared_euclidean(&base_point, &point2).sqrt();
             if diff_dist < extend_length {
-                // reached
-                // remove ind1 <-> ind2
-                for i in (ind1 + 1)..ind2 {
-                    path.remove(i);
+                // reached!
+                // remove path[ind1+1] ... path[ind2-1]
+                let remove_index = ind1 + 1;
+                for _ in 0..(ind2 - ind1 - 1) {
+                    path.remove(remove_index);
                 }
-                continue;
+                is_searching = false;
+            } else {
+                let check_point = base_point
+                    .iter()
+                    .zip(point2.iter())
+                    .map(|(near, target)| {
+                        near + (target - near) * extend_length / diff_dist
+                    })
+                    .collect::<Vec<_>>();
+                if !is_free(&check_point) {
+                    // trapped
+                    is_searching = false;
+                } else {
+                    // continue to extend
+                    base_point = check_point;
+                }
             }
-            let check_point = base_point
-                .iter()
-                .zip(point2.iter())
-                .map(|(near, target)| {
-                    near + (target - near) * extend_length / diff_dist
-                })
-                .collect::<Vec<_>>();
-            if !is_free(&check_point) {
-                break;
-            }
-            base_point = check_point;
         }
     }
 }
@@ -256,11 +260,10 @@ pub fn smooth_path<FF>(
 fn it_works() {
     extern crate env_logger;
     use rand::distributions::{IndependentSample, Range};
-    let is_free = |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0);
-    let result = dual_rrt_connect(
+    let mut result = dual_rrt_connect(
         &[-1.2, 0.0],
         &[1.2, 0.0],
-        is_free,
+        |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
         || {
             let between = Range::new(-2.0, 2.0);
             let mut rng = rand::thread_rng();
@@ -271,7 +274,8 @@ fn it_works() {
     ).unwrap();
     println!("{:?}", result);
     assert!(result.len() >= 4);
-    smooth_path(result, is_free, 0.2, 100);
+    smooth_path(&mut result, |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+                0.2, 100);
     println!("{:?}", result);
-    assert!(result.len() >= 4);
+    assert!(result.len() >= 3);
 }
