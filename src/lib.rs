@@ -36,6 +36,7 @@ extern crate log;
 
 use kdtree::distance::squared_euclidean;
 use std::mem;
+use rand::distributions::{IndependentSample, Range};
 
 pub enum ExtendStatus {
     Reached(usize),
@@ -91,12 +92,14 @@ impl Tree {
     pub fn get_nearest_id(&self, q: &[f64]) -> usize {
         *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
     }
-    pub fn extend<FF>(&mut self,
-                      q_target: &[f64],
-                      extend_length: f64,
-                      is_free: &mut FF)
-                      -> ExtendStatus
-        where FF: FnMut(&[f64]) -> bool
+    pub fn extend<FF>(
+        &mut self,
+        q_target: &[f64],
+        extend_length: f64,
+        is_free: &mut FF,
+    ) -> ExtendStatus
+    where
+        FF: FnMut(&[f64]) -> bool,
     {
         assert!(extend_length > 0.0);
         let nearest_id = self.get_nearest_id(q_target);
@@ -108,7 +111,9 @@ impl Tree {
             nearest_q
                 .iter()
                 .zip(q_target.iter())
-                .map(|(near, target)| near + (target - near) * extend_length / diff_dist)
+                .map(|(near, target)| {
+                    near + (target - near) * extend_length / diff_dist
+                })
                 .collect::<Vec<_>>()
         };
         info!("q_new={:?}", q_new);
@@ -124,12 +129,14 @@ impl Tree {
         }
         ExtendStatus::Trapped
     }
-    pub fn connect<FF>(&mut self,
-                       q_target: &[f64],
-                       extend_length: f64,
-                       is_free: &mut FF)
-                       -> ExtendStatus
-        where FF: FnMut(&[f64]) -> bool
+    pub fn connect<FF>(
+        &mut self,
+        q_target: &[f64],
+        extend_length: f64,
+        is_free: &mut FF,
+    ) -> ExtendStatus
+    where
+        FF: FnMut(&[f64]) -> bool,
     {
         loop {
             info!("connecting...{:?}", q_target);
@@ -152,15 +159,17 @@ impl Tree {
 }
 
 /// search the path from start to goal which is free, using random_sample function
-pub fn dual_rrt_connect<FF, FR>(start: &[f64],
-                                goal: &[f64],
-                                mut is_free: FF,
-                                random_sample: FR,
-                                extend_length: f64,
-                                num_max_try: usize)
-                                -> Result<Vec<Vec<f64>>, String>
-    where FF: FnMut(&[f64]) -> bool,
-          FR: Fn() -> Vec<f64>
+pub fn dual_rrt_connect<FF, FR>(
+    start: &[f64],
+    goal: &[f64],
+    mut is_free: FF,
+    random_sample: FR,
+    extend_length: f64,
+    num_max_try: usize,
+) -> Result<Vec<Vec<f64>>, String>
+where
+    FF: FnMut(&[f64]) -> bool,
+    FR: Fn() -> Vec<f64>,
 {
     assert_eq!(start.len(), goal.len());
     let mut tree_a = Tree::new("start", start.len());
@@ -178,7 +187,8 @@ pub fn dual_rrt_connect<FF, FR>(start: &[f64],
             ExtendStatus::Reached(new_id) => {
                 let q_new = tree_a.vertices[new_id].data.clone();
                 if let ExtendStatus::Reached(reach_id) =
-                    tree_b.connect(&q_new, extend_length, &mut is_free) {
+                    tree_b.connect(&q_new, extend_length, &mut is_free)
+                {
                     let mut a_all = tree_a.get_until_root(new_id);
                     let mut b_all = tree_b.get_until_root(reach_id);
                     a_all.reverse();
@@ -195,22 +205,77 @@ pub fn dual_rrt_connect<FF, FR>(start: &[f64],
     Err("failed".to_string())
 }
 
+/// select random two points, and try to connect.
+pub fn smooth_path<FF>(
+    path: &mut Vec<Vec<f64>>,
+    mut is_free: FF,
+    extend_length: f64,
+    num_max_try: usize,
+) where
+    FF: FnMut(&[f64]) -> bool,
+{
+    if path.len() < 3 {
+        return;
+    }
+    let mut rng = rand::thread_rng();
+    for _ in 0..num_max_try {
+        let range1 = Range::new(0, path.len() - 2);
+        let ind1 = range1.ind_sample(&mut rng);
+        let range2 = Range::new(ind1 + 2, path.len());
+        let ind2 = range2.ind_sample(&mut rng);
+        let mut base_point = path[ind1].clone();
+        let point2 = path[ind2].clone();
+        let mut is_searching = true;
+        while is_searching {
+            let diff_dist = squared_euclidean(&base_point, &point2).sqrt();
+            if diff_dist < extend_length {
+                // reached!
+                // remove path[ind1+1] ... path[ind2-1]
+                let remove_index = ind1 + 1;
+                for _ in 0..(ind2 - ind1 - 1) {
+                    path.remove(remove_index);
+                }
+                is_searching = false;
+            } else {
+                let check_point = base_point
+                    .iter()
+                    .zip(point2.iter())
+                    .map(|(near, target)| {
+                        near + (target - near) * extend_length / diff_dist
+                    })
+                    .collect::<Vec<_>>();
+                if !is_free(&check_point) {
+                    // trapped
+                    is_searching = false;
+                } else {
+                    // continue to extend
+                    base_point = check_point;
+                }
+            }
+        }
+    }
+}
+
 #[test]
 fn it_works() {
     extern crate env_logger;
     use rand::distributions::{IndependentSample, Range};
-    let result = dual_rrt_connect(&[-1.2, 0.0],
-                                  &[1.2, 0.0],
-                                  |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
-                                  || {
-                                      let between = Range::new(-2.0, 2.0);
-                                      let mut rng = rand::thread_rng();
-                                      vec![between.ind_sample(&mut rng),
-                                           between.ind_sample(&mut rng)]
-                                  },
-                                  0.2,
-                                  1000)
-            .unwrap();
+    let mut result = dual_rrt_connect(
+        &[-1.2, 0.0],
+        &[1.2, 0.0],
+        |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+        || {
+            let between = Range::new(-2.0, 2.0);
+            let mut rng = rand::thread_rng();
+            vec![between.ind_sample(&mut rng), between.ind_sample(&mut rng)]
+        },
+        0.2,
+        1000,
+    ).unwrap();
     println!("{:?}", result);
     assert!(result.len() >= 4);
+    smooth_path(&mut result, |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+                0.2, 100);
+    println!("{:?}", result);
+    assert!(result.len() >= 3);
 }
