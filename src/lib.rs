@@ -1,6 +1,20 @@
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
+/*
+   Copyright 2017 Takashi Ogura
 
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   */
 //! # RRT
 //!
 //! RRT (Rapidly-exploring Random Tree) library implemented by rust.
@@ -29,10 +43,10 @@
 //!   assert!(result.len() >= 4);
 //! }
 //! ```
-extern crate rand;
 extern crate kdtree;
 #[macro_use]
 extern crate log;
+extern crate rand;
 
 use kdtree::distance::squared_euclidean;
 use std::mem;
@@ -183,8 +197,7 @@ where
         let extend_status = tree_a.extend(&q_rand, extend_length, &mut is_free);
         match extend_status {
             ExtendStatus::Trapped => {}
-            ExtendStatus::Advanced(new_id) |
-            ExtendStatus::Reached(new_id) => {
+            ExtendStatus::Advanced(new_id) | ExtendStatus::Reached(new_id) => {
                 let q_new = tree_a.vertices[new_id].data.clone();
                 if let ExtendStatus::Reached(reach_id) =
                     tree_b.connect(&q_new, extend_length, &mut is_free)
