@@ -1,4 +1,4 @@
-# rrt
+# rrt [![Build Status](https://travis-ci.org/OTL/rrt.svg?branch=master)](https://travis-ci.org/OTL/rrt)  [![crates.io](https://img.shields.io/crates/v/rrt.svg)](https://crates.io/crates/rrt)
 
 RRT (Rapidly-exploring Random Tree) library in Rust
 
