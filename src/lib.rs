@@ -39,8 +39,8 @@
 //!                                     0.2,
 //!                                     1000)
 //!               .unwrap();
-//!   println!("{:?}", result);
-//!   assert!(result.len() >= 4);
+//!   println!("{:?}", result.waypoints);
+//!   assert!(result.waypoints.len() >= 4);
 //! }
 //! ```
 extern crate kdtree;
@@ -51,6 +51,10 @@ extern crate rand;
 use kdtree::distance::squared_euclidean;
 use std::mem;
 use rand::distributions::{IndependentSample, Range};
+
+pub struct Trajectory {
+    pub waypoints: Vec<Vec<f64>>,
+}
 
 pub enum ExtendStatus {
     Reached(usize),
@@ -180,7 +184,7 @@ pub fn dual_rrt_connect<FF, FR>(
     random_sample: FR,
     extend_length: f64,
     num_max_try: usize,
-) -> Result<Vec<Vec<f64>>, String>
+) -> Result<Trajectory, String>
 where
     FF: FnMut(&[f64]) -> bool,
     FR: Fn() -> Vec<f64>,
@@ -209,7 +213,7 @@ where
                     if tree_b.name == "start" {
                         a_all.reverse();
                     }
-                    return Ok(a_all);
+                    return Ok(Trajectory{waypoints: a_all});
                 }
             }
         }
@@ -288,14 +292,14 @@ fn it_works() {
         0.2,
         1000,
     ).unwrap();
-    println!("{:?}", result);
-    assert!(result.len() >= 4);
+    println!("{:?}", result.waypoints);
+    assert!(result.waypoints.len() >= 4);
     smooth_path(
-        &mut result,
+        &mut result.waypoints,
         |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
         0.2,
         100,
     );
-    println!("{:?}", result);
-    assert!(result.len() >= 3);
+    println!("{:?}", result.waypoints);
+    assert!(result.waypoints.len() >= 3);
 }

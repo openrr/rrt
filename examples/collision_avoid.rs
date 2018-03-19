@@ -30,6 +30,7 @@ use ncollide::ncollide_geometry::query::Proximity;
 
 use rand::distributions::{IndependentSample, Range};
 
+use rrt::Trajectory;
 
 struct CollisionProblem {
     obstacle: Cuboid<na::Vector3<f32>>,
@@ -99,10 +100,10 @@ fn main() {
 
     cs.set_local_transformation(poss);
     cg.set_local_transformation(posg);
-    let mut path = vec![];
+    let mut path = Trajectory{waypoints: vec![]};
     let mut index = 0;
     while window.render() {
-        if index == path.len() {
+        if index == path.waypoints.len() {
             path = rrt::dual_rrt_connect(
                 &start,
                 &goal,
@@ -111,10 +112,10 @@ fn main() {
                 0.05,
                 1000,
             ).unwrap();
-            rrt::smooth_path(&mut path, |x: &[f64]| p.is_feasible(x), 0.05, 100);
+            rrt::smooth_path(&mut path.waypoints, |x: &[f64]| p.is_feasible(x), 0.05, 100);
             index = 0;
         }
-        let point = &path[index % path.len()];
+        let point = &path.waypoints[index % path.waypoints.len()];
         let pos = Isometry3::new(
             Vector3::new(point[0] as f32, point[1] as f32, point[2] as f32),
             na::zero(),
