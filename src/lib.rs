@@ -46,11 +46,15 @@
 extern crate kdtree;
 #[macro_use]
 extern crate log;
+extern crate num_traits;
 extern crate rand;
 
 use kdtree::distance::squared_euclidean;
-use std::mem;
+use num_traits::float::Float;
+use num_traits::identities::Zero;
 use rand::distributions::{IndependentSample, Range};
+use std::fmt::Debug;
+use std::mem;
 
 pub enum ExtendStatus {
     Reached(usize),
@@ -78,14 +82,20 @@ impl<T> Node<T> {
 
 /// RRT
 #[derive(Debug)]
-pub struct Tree {
+pub struct Tree<N>
+where
+    N: Float + Zero + Debug,
+{
     pub dim: usize,
-    pub kdtree: kdtree::KdTree<usize, Vec<f64>>,
-    pub vertices: Vec<Node<Vec<f64>>>,
+    pub kdtree: kdtree::KdTree<N, usize, Vec<N>>,
+    pub vertices: Vec<Node<Vec<N>>>,
     pub name: String,
 }
 
-impl Tree {
+impl<N> Tree<N>
+where
+    N: Float + Zero + Debug,
+{
     pub fn new(name: &str, dim: usize) -> Self {
         Tree {
             dim: dim,
@@ -94,7 +104,7 @@ impl Tree {
             name: name.to_string(),
         }
     }
-    pub fn add_vertex(&mut self, q: &[f64]) -> usize {
+    pub fn add_vertex(&mut self, q: &[N]) -> usize {
         let id = self.vertices.len();
         self.kdtree.add(q.to_vec(), id).unwrap();
         self.vertices.push(Node::new(q.to_vec(), id));
@@ -103,19 +113,14 @@ impl Tree {
     pub fn add_edge(&mut self, q1_id: usize, q2_id: usize) {
         self.vertices[q2_id].parent_id = Some(q1_id);
     }
-    pub fn get_nearest_id(&self, q: &[f64]) -> usize {
+    pub fn get_nearest_id(&self, q: &[N]) -> usize {
         *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
     }
-    pub fn extend<FF>(
-        &mut self,
-        q_target: &[f64],
-        extend_length: f64,
-        is_free: &mut FF,
-    ) -> ExtendStatus
+    pub fn extend<FF>(&mut self, q_target: &[N], extend_length: N, is_free: &mut FF) -> ExtendStatus
     where
-        FF: FnMut(&[f64]) -> bool,
+        FF: FnMut(&[N]) -> bool,
     {
-        assert!(extend_length > 0.0);
+        assert!(extend_length > N::zero());
         let nearest_id = self.get_nearest_id(q_target);
         let nearest_q = self.vertices[nearest_id].data.clone();
         let diff_dist = squared_euclidean(q_target, &nearest_q).sqrt();
@@ -123,11 +128,9 @@ impl Tree {
             q_target.to_vec()
         } else {
             nearest_q
-                .iter()
+                .into_iter()
                 .zip(q_target.iter())
-                .map(|(near, target)| {
-                    near + (target - near) * extend_length / diff_dist
-                })
+                .map(|(near, target)| near + (*target - near) * extend_length / diff_dist)
                 .collect::<Vec<_>>()
         };
         info!("q_new={:?}", q_new);
@@ -145,12 +148,12 @@ impl Tree {
     }
     pub fn connect<FF>(
         &mut self,
-        q_target: &[f64],
-        extend_length: f64,
+        q_target: &[N],
+        extend_length: N,
         is_free: &mut FF,
     ) -> ExtendStatus
     where
-        FF: FnMut(&[f64]) -> bool,
+        FF: FnMut(&[N]) -> bool,
     {
         loop {
             info!("connecting...{:?}", q_target);
@@ -161,7 +164,7 @@ impl Tree {
             };
         }
     }
-    pub fn get_until_root(&self, id: usize) -> Vec<Vec<f64>> {
+    pub fn get_until_root(&self, id: usize) -> Vec<Vec<N>> {
         let mut nodes = Vec::new();
         let mut cur_id = id;
         while let Some(parent_id) = self.vertices[cur_id].parent_id {
@@ -173,17 +176,18 @@ impl Tree {
 }
 
 /// search the path from start to goal which is free, using random_sample function
-pub fn dual_rrt_connect<FF, FR>(
-    start: &[f64],
-    goal: &[f64],
+pub fn dual_rrt_connect<FF, FR, N>(
+    start: &[N],
+    goal: &[N],
     mut is_free: FF,
     random_sample: FR,
-    extend_length: f64,
+    extend_length: N,
     num_max_try: usize,
-) -> Result<Vec<Vec<f64>>, String>
+) -> Result<Vec<Vec<N>>, String>
 where
-    FF: FnMut(&[f64]) -> bool,
-    FR: Fn() -> Vec<f64>,
+    FF: FnMut(&[N]) -> bool,
+    FR: Fn() -> Vec<N>,
+    N: Float + Debug,
 {
     assert_eq!(start.len(), goal.len());
     let mut tree_a = Tree::new("start", start.len());
@@ -219,13 +223,14 @@ where
 }
 
 /// select random two points, and try to connect.
-pub fn smooth_path<FF>(
-    path: &mut Vec<Vec<f64>>,
+pub fn smooth_path<FF, N>(
+    path: &mut Vec<Vec<N>>,
     mut is_free: FF,
-    extend_length: f64,
+    extend_length: N,
     num_max_try: usize,
 ) where
-    FF: FnMut(&[f64]) -> bool,
+    FF: FnMut(&[N]) -> bool,
+    N: Float + Debug,
 {
     if path.len() < 3 {
         return;
@@ -256,9 +261,7 @@ pub fn smooth_path<FF>(
                 let check_point = base_point
                     .iter()
                     .zip(point2.iter())
-                    .map(|(near, target)| {
-                        near + (target - near) * extend_length / diff_dist
-                    })
+                    .map(|(near, target)| *near + (*target - *near) * extend_length / diff_dist)
                     .collect::<Vec<_>>();
                 if !is_free(&check_point) {
                     // trapped
