@@ -11,13 +11,13 @@ documentation = "http://docs.rs/rrt"
 readme = "README.md"
 
 [dependencies]
-kdtree = "0.5.1"
-rand = "0.4"
-log = "0.3.8"
-env_logger = "0.4.3"
+kdtree = "0.6"
+rand = "0.8"
+log = "0.4"
+env_logger = "0.8"
 num-traits = "0.2"
 
 [dev-dependencies]
-nalgebra = "0.14"
-ncollide = "0.14.1"
-kiss3d = "0.14"
+nalgebra = "0.24"
+ncollide3d = "0.27"
+kiss3d = "0.29"

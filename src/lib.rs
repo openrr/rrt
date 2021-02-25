@@ -24,15 +24,15 @@
 //! extern crate rand;
 //! extern crate rrt;
 //! fn main() {
-//!   use rand::distributions::{IndependentSample, Range};
+//!   use rand::distributions::{Distribution, Uniform};
 //!   let result = rrt::dual_rrt_connect(&[-1.2, 0.0],
 //!                                      &[1.2, 0.0],
 //!                                     |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
 //!                                     || {
-//!                                         let between = Range::new(-2.0, 2.0);
+//!                                         let between = Uniform::new(-2.0, 2.0);
 //!                                         let mut rng = rand::thread_rng();
-//!                                         vec![between.ind_sample(&mut rng),
-//!                                              between.ind_sample(&mut rng)]
+//!                                         vec![between.sample(&mut rng),
+//!                                              between.sample(&mut rng)]
 //!                                     },
 //!                                     0.2,
 //!                                     1000)
@@ -50,7 +50,7 @@ extern crate rand;
 use kdtree::distance::squared_euclidean;
 use num_traits::float::Float;
 use num_traits::identities::Zero;
-use rand::distributions::{IndependentSample, Range};
+use rand::distributions::{Distribution, Uniform};
 use std::fmt::Debug;
 use std::mem;
 
@@ -235,10 +235,10 @@ pub fn smooth_path<FF, N>(
     }
     let mut rng = rand::thread_rng();
     for _ in 0..num_max_try {
-        let range1 = Range::new(0, path.len() - 2);
-        let ind1 = range1.ind_sample(&mut rng);
-        let range2 = Range::new(ind1 + 2, path.len());
-        let ind2 = range2.ind_sample(&mut rng);
+        let range1 = Uniform::new(0, path.len() - 2);
+        let ind1 = range1.sample(&mut rng);
+        let range2 = Uniform::new(ind1 + 2, path.len());
+        let ind2 = range2.sample(&mut rng);
         let mut base_point = path[ind1].clone();
         let point2 = path[ind2].clone();
         let mut is_searching = true;
@@ -276,19 +276,20 @@ pub fn smooth_path<FF, N>(
 #[test]
 fn it_works() {
     extern crate env_logger;
-    use rand::distributions::{IndependentSample, Range};
+    use rand::distributions::{Distribution, Uniform};
     let mut result = dual_rrt_connect(
         &[-1.2, 0.0],
         &[1.2, 0.0],
         |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
         || {
-            let between = Range::new(-2.0, 2.0);
+            let between = Uniform::new(-2.0, 2.0);
             let mut rng = rand::thread_rng();
-            vec![between.ind_sample(&mut rng), between.ind_sample(&mut rng)]
+            vec![between.sample(&mut rng), between.sample(&mut rng)]
         },
         0.2,
         1000,
-    ).unwrap();
+    )
+    .unwrap();
     println!("{:?}", result);
     assert!(result.len() >= 4);
     smooth_path(
