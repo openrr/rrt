@@ -13,11 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-extern crate kiss3d;
-extern crate nalgebra as na;
-extern crate ncollide3d;
-extern crate rand;
-extern crate rrt;
+
+use nalgebra as na;
 
 use kiss3d::light::Light;
 use kiss3d::window::Window;

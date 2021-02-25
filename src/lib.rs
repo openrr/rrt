@@ -21,8 +21,6 @@
 //! ## Examples
 //!
 //! ```
-//! extern crate rand;
-//! extern crate rrt;
 //! fn main() {
 //!     use rand::distributions::{Distribution, Uniform};
 //!     let result = rrt::dual_rrt_connect(
@@ -42,13 +40,9 @@
 //!     assert!(result.len() >= 4);
 //! }
 //! ```
-extern crate kdtree;
-#[macro_use]
-extern crate log;
-extern crate num_traits;
-extern crate rand;
 
 use kdtree::distance::squared_euclidean;
+use log::info;
 use num_traits::float::Float;
 use num_traits::identities::Zero;
 use rand::distributions::{Distribution, Uniform};
@@ -276,7 +270,6 @@ pub fn smooth_path<FF, N>(
 
 #[test]
 fn it_works() {
-    extern crate env_logger;
     use rand::distributions::{Distribution, Uniform};
     let mut result = dual_rrt_connect(
         &[-1.2, 0.0],

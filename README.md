@@ -25,8 +25,6 @@ There are only one function `dual_rrt_connect`, which takes `start`, `goal`,
 `is free function`, `random generation function`, `unit length of extend`, `max repeat num`.
 
 ```rust
-extern crate rand;
-extern crate rrt;
 fn main() {
     use rand::distributions::{Distribution, Uniform};
     let result = rrt::dual_rrt_connect(
