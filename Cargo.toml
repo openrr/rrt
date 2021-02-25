@@ -15,7 +15,6 @@ readme = "README.md"
 kdtree = "0.6"
 rand = "0.8"
 log = "0.4"
-env_logger = "0.8"
 num-traits = "0.2"
 
 [dev-dependencies]
