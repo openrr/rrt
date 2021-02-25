@@ -15,22 +15,21 @@
 */
 extern crate kiss3d;
 extern crate nalgebra as na;
-extern crate ncollide;
+extern crate ncollide3d;
 extern crate rand;
 extern crate rrt;
 
-use kiss3d::window::Window;
 use kiss3d::light::Light;
+use kiss3d::window::Window;
 use na::{Isometry3, Vector3};
-use ncollide::shape::{Ball, Cuboid};
-use ncollide::query;
-use ncollide::ncollide_geometry::query::Proximity;
+use ncollide3d::query;
+use ncollide3d::query::Proximity;
+use ncollide3d::shape::{Ball, Cuboid};
 
-use rand::distributions::{IndependentSample, Range};
-
+use rand::distributions::{Distribution, Uniform};
 
 struct CollisionProblem {
-    obstacle: Cuboid<na::Vector3<f32>>,
+    obstacle: Cuboid<f32>,
     ball: Ball<f32>,
 }
 
@@ -52,12 +51,12 @@ impl CollisionProblem {
         ctct == Proximity::Disjoint
     }
     fn random_sample(&self) -> Vec<f64> {
-        let between = Range::new(-4.0, 4.0);
+        let between = Uniform::new(-4.0, 4.0);
         let mut rng = rand::thread_rng();
         vec![
-            between.ind_sample(&mut rng),
-            between.ind_sample(&mut rng),
-            between.ind_sample(&mut rng),
+            between.sample(&mut rng),
+            between.sample(&mut rng),
+            between.sample(&mut rng),
         ]
     }
 }
@@ -108,7 +107,8 @@ fn main() {
                 || p.random_sample(),
                 0.05,
                 1000,
-            ).unwrap();
+            )
+            .unwrap();
             rrt::smooth_path(&mut path, |x: &[f64]| p.is_feasible(x), 0.05, 100);
             index = 0;
         }
