@@ -1,4 +1,4 @@
-# rrt [![Build Status](https://travis-ci.org/openrr/rrt.svg?branch=master)](https://travis-ci.org/OTL/rrt)  [![crates.io](https://img.shields.io/crates/v/rrt.svg)](https://crates.io/crates/rrt)
+# rrt [![Build Status](https://img.shields.io/github/workflow/status/openrr/rrt/CI/main)](https://github.com/openrr/rrt/actions)  [![crates.io](https://img.shields.io/crates/v/rrt.svg)](https://crates.io/crates/rrt)
 
 RRT (Rapidly-exploring Random Tree) library in Rust
 
@@ -6,7 +6,7 @@ RRT (Rapidly-exploring Random Tree) library in Rust
 
 In your `Cargo.tml`, add below.
 
-```ini
+```toml
 [dependencies]
 rrt = "0.1.0"
 ```
