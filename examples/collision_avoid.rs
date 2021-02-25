@@ -67,9 +67,9 @@ fn main() {
         ball: Ball::new(0.05f32),
     };
     let mut c1 = window.add_cube(
-        p.obstacle.half_extents()[0] * 2.0,
-        p.obstacle.half_extents()[1] * 2.0,
-        p.obstacle.half_extents()[2] * 2.0,
+        p.obstacle.half_extents[0] * 2.0,
+        p.obstacle.half_extents[1] * 2.0,
+        p.obstacle.half_extents[2] * 2.0,
     );
     c1.set_color(1.0, 0.0, 0.0);
 
@@ -78,7 +78,7 @@ fn main() {
     let mut cg = window.add_cube(0.05, 0.05, 0.05);
     cg.set_color(0.0, 1.0, 0.0);
 
-    let mut c2 = window.add_sphere(p.ball.radius());
+    let mut c2 = window.add_sphere(p.ball.radius);
     c2.set_color(0.0, 1.0, 1.0);
     let start = [0.2f64, 0.2, 0.2];
     let goal = [-0.2f64, -0.2, -0.2];
