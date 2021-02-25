@@ -28,20 +28,21 @@ There are only one function `dual_rrt_connect`, which takes `start`, `goal`,
 extern crate rand;
 extern crate rrt;
 fn main() {
-  use rand::distributions::{IndependentSample, Range};
-  let result = rrt::dual_rrt_connect(&[-1.2, 0.0],
-                                     &[1.2, 0.0],
-                                     |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
-                                     || {
-                                        let between = Range::new(-2.0, 2.0);
-                                        let mut rng = rand::thread_rng();
-                                        vec![between.ind_sample(&mut rng),
-                                             between.ind_sample(&mut rng)]
-                                     },
-                                     0.2,
-                                     1000)
-              .unwrap();
-  println!("{:?}", result);
-  assert!(result.len() >= 4);
+    use rand::distributions::{Distribution, Uniform};
+    let result = rrt::dual_rrt_connect(
+        &[-1.2, 0.0],
+        &[1.2, 0.0],
+        |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+        || {
+            let between = Uniform::new(-2.0, 2.0);
+            let mut rng = rand::thread_rng();
+            vec![between.sample(&mut rng), between.sample(&mut rng)]
+        },
+        0.2,
+        1000,
+    )
+    .unwrap();
+    println!("{:?}", result);
+    assert!(result.len() >= 4);
 }
 ```

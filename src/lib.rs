@@ -1,18 +1,18 @@
 /*
-   Copyright 2017 Takashi Ogura
+  Copyright 2017 Takashi Ogura
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+      http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 //! # RRT
 //!
 //! RRT (Rapidly-exploring Random Tree) library implemented by rust.
@@ -24,21 +24,22 @@
 //! extern crate rand;
 //! extern crate rrt;
 //! fn main() {
-//!   use rand::distributions::{Distribution, Uniform};
-//!   let result = rrt::dual_rrt_connect(&[-1.2, 0.0],
-//!                                      &[1.2, 0.0],
-//!                                     |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
-//!                                     || {
-//!                                         let between = Uniform::new(-2.0, 2.0);
-//!                                         let mut rng = rand::thread_rng();
-//!                                         vec![between.sample(&mut rng),
-//!                                              between.sample(&mut rng)]
-//!                                     },
-//!                                     0.2,
-//!                                     1000)
-//!               .unwrap();
-//!   println!("{:?}", result);
-//!   assert!(result.len() >= 4);
+//!     use rand::distributions::{Distribution, Uniform};
+//!     let result = rrt::dual_rrt_connect(
+//!         &[-1.2, 0.0],
+//!         &[1.2, 0.0],
+//!         |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+//!         || {
+//!             let between = Uniform::new(-2.0, 2.0);
+//!             let mut rng = rand::thread_rng();
+//!             vec![between.sample(&mut rng), between.sample(&mut rng)]
+//!         },
+//!         0.2,
+//!         1000,
+//!     )
+//!     .unwrap();
+//!     println!("{:?}", result);
+//!     assert!(result.len() >= 4);
 //! }
 //! ```
 extern crate kdtree;
