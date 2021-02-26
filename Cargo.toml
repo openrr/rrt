@@ -1,6 +1,6 @@
 [package]
 name = "rrt"
-version = "0.3.0"
+version = "0.5.0"
 authors = ["Takashi Ogura <t.ogura@gmail.com>"]
 edition = "2018"
 description = "Path finding using dual-RRT connect"
@@ -11,6 +11,7 @@ repository = "https://github.com/openrr/rrt"
 documentation = "http://docs.rs/rrt"
 readme = "README.md"
 
+# Note: kdtree and num-traits are public dependencies.
 [dependencies]
 kdtree = "0.6"
 rand = "0.8"
