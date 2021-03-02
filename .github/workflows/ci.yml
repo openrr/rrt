@@ -8,6 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
   RUST_BACKTRACE: 1
 
 defaults:
@@ -29,6 +30,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install xorg-dev libglu1-mesa-dev
     - run: cargo fmt -- --check
+      if: matrix.rust == 'stable'
+    - run: cargo clippy --all-targets
       if: matrix.rust == 'stable'
     - run: cargo build --verbose
     - run: cargo test --verbose
