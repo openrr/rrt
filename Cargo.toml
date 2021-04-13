@@ -9,7 +9,6 @@ keywords = ["search", "path-finding", "rrt", "robotics"]
 categories = ["algorithms"]
 repository = "https://github.com/openrr/rrt"
 documentation = "http://docs.rs/rrt"
-readme = "README.md"
 
 # Note: kdtree and num-traits are public dependencies.
 [dependencies]
