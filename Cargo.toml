@@ -18,6 +18,4 @@ log = "0.4"
 num-traits = "0.2"
 
 [dev-dependencies]
-nalgebra = "0.26"
-ncollide3d = "0.29"
 kiss3d = "0.31"

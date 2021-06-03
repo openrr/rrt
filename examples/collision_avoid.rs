@@ -14,9 +14,9 @@
    limitations under the License.
 */
 
-use nalgebra as na;
-
 use kiss3d::light::Light;
+use kiss3d::nalgebra as na;
+use kiss3d::ncollide3d;
 use kiss3d::window::Window;
 use na::{Isometry3, Vector3};
 use ncollide3d::query;
