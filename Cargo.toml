@@ -19,5 +19,5 @@ num-traits = "0.2"
 
 [dev-dependencies]
 nalgebra = "0.26"
-ncollide3d = "0.29"
+ncollide3d = "0.30"
 kiss3d = "0.31"
