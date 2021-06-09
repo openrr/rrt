@@ -132,7 +132,7 @@ where
                 return ExtendStatus::Reached(new_id);
             }
             info!("target = {:?}", q_target);
-            info!("advaneced to {:?}", q_target);
+            info!("advanced to {:?}", q_target);
             return ExtendStatus::Advanced(new_id);
         }
         ExtendStatus::Trapped
