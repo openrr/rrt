@@ -116,15 +116,15 @@ where
     {
         assert!(extend_length > N::zero());
         let nearest_id = self.get_nearest_id(q_target);
-        let nearest_q = self.vertices[nearest_id].data.clone();
-        let diff_dist = squared_euclidean(q_target, &nearest_q).sqrt();
+        let nearest_q = &self.vertices[nearest_id].data;
+        let diff_dist = squared_euclidean(q_target, nearest_q).sqrt();
         let q_new = if diff_dist < extend_length {
             q_target.to_vec()
         } else {
             nearest_q
-                .into_iter()
-                .zip(q_target.iter())
-                .map(|(near, target)| near + (*target - near) * extend_length / diff_dist)
+                .iter()
+                .zip(q_target)
+                .map(|(near, target)| *near + (*target - *near) * extend_length / diff_dist)
                 .collect::<Vec<_>>()
         };
         info!("q_new={:?}", q_new);
@@ -196,9 +196,9 @@ where
         match extend_status {
             ExtendStatus::Trapped => {}
             ExtendStatus::Advanced(new_id) | ExtendStatus::Reached(new_id) => {
-                let q_new = tree_a.vertices[new_id].data.clone();
+                let q_new = &tree_a.vertices[new_id].data;
                 if let ExtendStatus::Reached(reach_id) =
-                    tree_b.connect(&q_new, extend_length, &mut is_free)
+                    tree_b.connect(q_new, extend_length, &mut is_free)
                 {
                     let mut a_all = tree_a.get_until_root(new_id);
                     let mut b_all = tree_b.get_until_root(reach_id);
