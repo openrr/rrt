@@ -17,21 +17,16 @@ defaults:
 
 jobs:
   test:
-    strategy:
-      matrix:
-        rust: [ stable, beta, nightly ]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Install Rust
-      run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install xorg-dev libglu1-mesa-dev
-    - run: cargo fmt -- --check
-      if: matrix.rust == 'stable'
-    - run: cargo clippy --all-targets
-      if: matrix.rust == 'stable'
-    - run: cargo build --verbose
-    - run: cargo test --verbose
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        run: rustup update stable
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install xorg-dev libglu1-mesa-dev
+      - run: cargo fmt -- --check
+      - run: cargo clippy --all-targets
+      - run: cargo build
+      - run: cargo test
