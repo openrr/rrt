@@ -8,7 +8,6 @@ license = "Apache-2.0"
 keywords = ["search", "path-finding", "rrt", "robotics"]
 categories = ["algorithms"]
 repository = "https://github.com/openrr/rrt"
-documentation = "http://docs.rs/rrt"
 
 # Note: kdtree and num-traits are public dependencies.
 [dependencies]
