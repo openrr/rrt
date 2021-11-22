@@ -28,5 +28,5 @@ jobs:
           sudo apt-get install xorg-dev libglu1-mesa-dev
       - run: cargo fmt -- --check
       - run: cargo clippy --all-targets
-      - run: cargo build
+      - run: cargo build --examples
       - run: cargo test
