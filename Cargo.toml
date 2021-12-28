@@ -9,7 +9,7 @@ keywords = ["search", "path-finding", "rrt", "robotics"]
 categories = ["algorithms"]
 repository = "https://github.com/openrr/rrt"
 
-# Note: kdtree and num-traits are public dependencies.
+# Note: num-traits is public dependency.
 [dependencies]
 kdtree = "0.6"
 rand = "0.8"
