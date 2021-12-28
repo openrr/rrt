@@ -13,32 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-//! # RRT
-//!
-//! RRT (Rapidly-exploring Random Tree) library implemented by rust.
-//! Only Dual RRT Connect is supported.
-//!
-//! ## Examples
-//!
-//! ```
-//! use rand::distributions::{Distribution, Uniform};
-//! let result = rrt::dual_rrt_connect(
-//!     &[-1.2, 0.0],
-//!     &[1.2, 0.0],
-//!     |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
-//!     || {
-//!         let between = Uniform::new(-2.0, 2.0);
-//!         let mut rng = rand::thread_rng();
-//!         vec![between.sample(&mut rng), between.sample(&mut rng)]
-//!     },
-//!     0.2,
-//!     1000,
-//! )
-//! .unwrap();
-//! println!("{:?}", result);
-//! assert!(result.len() >= 4);
-//! ```
 
+#![doc = include_str!("../README.md")]
 #![warn(missing_debug_implementations, rust_2018_idioms)]
 
 use kdtree::distance::squared_euclidean;

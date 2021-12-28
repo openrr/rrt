@@ -2,7 +2,9 @@
 
 [![Build Status](https://img.shields.io/github/workflow/status/openrr/rrt/CI/main)](https://github.com/openrr/rrt/actions) [![crates.io](https://img.shields.io/crates/v/rrt.svg)](https://crates.io/crates/rrt) [![docs](https://docs.rs/rrt/badge.svg)](https://docs.rs/rrt)
 
-RRT (Rapidly-exploring Random Tree) library in Rust
+RRT (Rapidly-exploring Random Tree) library in Rust.
+
+Only Dual RRT Connect is supported.
 
 ## Using this crate
 
@@ -15,7 +17,7 @@ rrt = "0.5"
 
 ## Examples
 
-There are an example to solve collision avoid problem.
+There is [an example](https://github.com/openrr/rrt/blob/main/examples/collision_avoid.rs) to solve collision avoid problem.
 
 ```bash
 cargo run --release --example collision_avoid
