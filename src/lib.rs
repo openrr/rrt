@@ -59,16 +59,14 @@ pub enum ExtendStatus {
 /// Node that contains user data
 #[derive(Debug, Clone)]
 pub struct Node<T> {
-    parent_id: Option<usize>,
-    id: usize,
+    parent_index: Option<usize>,
     data: T,
 }
 
 impl<T> Node<T> {
-    pub fn new(data: T, id: usize) -> Self {
+    pub fn new(data: T) -> Self {
         Node {
-            parent_id: None,
-            id,
+            parent_index: None,
             data,
         }
     }
@@ -76,11 +74,11 @@ impl<T> Node<T> {
 
 /// RRT
 #[derive(Debug)]
+#[non_exhaustive]
 pub struct Tree<N>
 where
     N: Float + Zero + Debug,
 {
-    pub dim: usize,
     pub kdtree: kdtree::KdTree<N, usize, Vec<N>>,
     pub vertices: Vec<Node<Vec<N>>>,
     pub name: String,
@@ -92,22 +90,21 @@ where
 {
     pub fn new(name: &str, dim: usize) -> Self {
         Tree {
-            dim,
             kdtree: kdtree::KdTree::new(dim),
             vertices: Vec::new(),
             name: name.to_string(),
         }
     }
     pub fn add_vertex(&mut self, q: &[N]) -> usize {
-        let id = self.vertices.len();
-        self.kdtree.add(q.to_vec(), id).unwrap();
-        self.vertices.push(Node::new(q.to_vec(), id));
-        id
+        let index = self.vertices.len();
+        self.kdtree.add(q.to_vec(), index).unwrap();
+        self.vertices.push(Node::new(q.to_vec()));
+        index
     }
-    pub fn add_edge(&mut self, q1_id: usize, q2_id: usize) {
-        self.vertices[q2_id].parent_id = Some(q1_id);
+    pub fn add_edge(&mut self, q1_index: usize, q2_index: usize) {
+        self.vertices[q2_index].parent_index = Some(q1_index);
     }
-    pub fn get_nearest_id(&self, q: &[N]) -> usize {
+    pub fn get_nearest_index(&self, q: &[N]) -> usize {
         *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
     }
     pub fn extend<FF>(&mut self, q_target: &[N], extend_length: N, is_free: &mut FF) -> ExtendStatus
@@ -115,8 +112,8 @@ where
         FF: FnMut(&[N]) -> bool,
     {
         assert!(extend_length > N::zero());
-        let nearest_id = self.get_nearest_id(q_target);
-        let nearest_q = &self.vertices[nearest_id].data;
+        let nearest_index = self.get_nearest_index(q_target);
+        let nearest_q = &self.vertices[nearest_index].data;
         let diff_dist = squared_euclidean(q_target, nearest_q).sqrt();
         let q_new = if diff_dist < extend_length {
             q_target.to_vec()
@@ -129,14 +126,14 @@ where
         };
         info!("q_new={:?}", q_new);
         if is_free(&q_new) {
-            let new_id = self.add_vertex(&q_new);
-            self.add_edge(nearest_id, new_id);
+            let new_index = self.add_vertex(&q_new);
+            self.add_edge(nearest_index, new_index);
             if squared_euclidean(&q_new, q_target).sqrt() < extend_length {
-                return ExtendStatus::Reached(new_id);
+                return ExtendStatus::Reached(new_index);
             }
             info!("target = {:?}", q_target);
             info!("advanced to {:?}", q_target);
-            return ExtendStatus::Advanced(new_id);
+            return ExtendStatus::Advanced(new_index);
         }
         ExtendStatus::Trapped
     }
@@ -153,17 +150,17 @@ where
             info!("connecting...{:?}", q_target);
             match self.extend(q_target, extend_length, is_free) {
                 ExtendStatus::Trapped => return ExtendStatus::Trapped,
-                ExtendStatus::Reached(id) => return ExtendStatus::Reached(id),
+                ExtendStatus::Reached(index) => return ExtendStatus::Reached(index),
                 ExtendStatus::Advanced(_) => {}
             };
         }
     }
-    pub fn get_until_root(&self, id: usize) -> Vec<Vec<N>> {
+    pub fn get_until_root(&self, index: usize) -> Vec<Vec<N>> {
         let mut nodes = Vec::new();
-        let mut cur_id = id;
-        while let Some(parent_id) = self.vertices[cur_id].parent_id {
-            cur_id = parent_id;
-            nodes.push(self.vertices[cur_id].data.clone())
+        let mut cur_index = index;
+        while let Some(parent_index) = self.vertices[cur_index].parent_index {
+            cur_index = parent_index;
+            nodes.push(self.vertices[cur_index].data.clone())
         }
         nodes
     }
@@ -195,13 +192,13 @@ where
         let extend_status = tree_a.extend(&q_rand, extend_length, &mut is_free);
         match extend_status {
             ExtendStatus::Trapped => {}
-            ExtendStatus::Advanced(new_id) | ExtendStatus::Reached(new_id) => {
-                let q_new = &tree_a.vertices[new_id].data;
-                if let ExtendStatus::Reached(reach_id) =
+            ExtendStatus::Advanced(new_index) | ExtendStatus::Reached(new_index) => {
+                let q_new = &tree_a.vertices[new_index].data;
+                if let ExtendStatus::Reached(reach_index) =
                     tree_b.connect(q_new, extend_length, &mut is_free)
                 {
-                    let mut a_all = tree_a.get_until_root(new_id);
-                    let mut b_all = tree_b.get_until_root(reach_id);
+                    let mut a_all = tree_a.get_until_root(new_index);
+                    let mut b_all = tree_b.get_until_root(reach_index);
                     a_all.reverse();
                     a_all.append(&mut b_all);
                     if tree_b.name == "start" {
