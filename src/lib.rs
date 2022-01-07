@@ -18,12 +18,12 @@
 #![warn(missing_debug_implementations, rust_2018_idioms)]
 
 use kdtree::distance::squared_euclidean;
-use log::info;
 use num_traits::float::Float;
 use num_traits::identities::Zero;
 use rand::distributions::{Distribution, Uniform};
 use std::fmt::Debug;
 use std::mem;
+use tracing::info;
 
 #[derive(Debug)]
 enum ExtendStatus {

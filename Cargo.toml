@@ -12,9 +12,9 @@ repository = "https://github.com/openrr/rrt"
 # Note: num-traits is public dependency.
 [dependencies]
 kdtree = "0.6"
-rand = "0.8"
-log = "0.4"
 num-traits = "0.2"
+rand = "0.8"
+tracing = "0.1"
 
 [dev-dependencies]
 kiss3d = "0.32"
