@@ -6,15 +6,6 @@ RRT (Rapidly-exploring Random Tree) library in Rust.
 
 Only Dual RRT Connect is supported.
 
-## Using this crate
-
-In your `Cargo.tml`, add below.
-
-```toml
-[dependencies]
-rrt = "0.5"
-```
-
 ## Examples
 
 There is [an example](https://github.com/openrr/rrt/blob/main/examples/collision_avoid.rs) to solve collision avoid problem.
