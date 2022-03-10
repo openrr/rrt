@@ -34,6 +34,6 @@ let result = rrt::dual_rrt_connect(
     1000,
 )
 .unwrap();
-println!("{:?}", result);
+println!("{result:?}");
 assert!(result.len() >= 4);
 ```

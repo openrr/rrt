@@ -99,15 +99,15 @@ where
                 .map(|(near, target)| *near + (*target - *near) * extend_length / diff_dist)
                 .collect::<Vec<_>>()
         };
-        info!("q_new={:?}", q_new);
+        info!("q_new={q_new:?}");
         if is_free(&q_new) {
             let new_index = self.add_vertex(&q_new);
             self.add_edge(nearest_index, new_index);
             if squared_euclidean(&q_new, q_target).sqrt() < extend_length {
                 return ExtendStatus::Reached(new_index);
             }
-            info!("target = {:?}", q_target);
-            info!("advanced to {:?}", q_target);
+            info!("target = {q_target:?}");
+            info!("advanced to {q_target:?}");
             return ExtendStatus::Advanced(new_index);
         }
         ExtendStatus::Trapped
@@ -117,7 +117,7 @@ where
         FF: FnMut(&[N]) -> bool,
     {
         loop {
-            info!("connecting...{:?}", q_target);
+            info!("connecting...{q_target:?}");
             match self.extend(q_target, extend_length, is_free) {
                 ExtendStatus::Trapped => return ExtendStatus::Trapped,
                 ExtendStatus::Reached(index) => return ExtendStatus::Reached(index),
@@ -252,7 +252,7 @@ fn it_works() {
         1000,
     )
     .unwrap();
-    println!("{:?}", result);
+    println!("{result:?}");
     assert!(result.len() >= 4);
     smooth_path(
         &mut result,
@@ -260,6 +260,6 @@ fn it_works() {
         0.2,
         100,
     );
-    println!("{:?}", result);
+    println!("{result:?}");
     assert!(result.len() >= 3);
 }
