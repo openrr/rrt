@@ -17,4 +17,4 @@ rand = "0.8"
 tracing = "0.1"
 
 [dev-dependencies]
-kiss3d = "0.33"
+kiss3d = "0.34"
