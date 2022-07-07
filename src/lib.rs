@@ -23,6 +23,7 @@ use num_traits::identities::Zero;
 use rand::distributions::{Distribution, Uniform};
 use std::fmt::Debug;
 use std::mem;
+use std::num::NonZeroUsize;
 use tracing::info;
 
 #[derive(Debug)]
@@ -32,10 +33,27 @@ enum ExtendStatus {
     Trapped,
 }
 
+#[test]
+fn size() {
+    assert_eq!(std::mem::size_of::<Node<Vec<f64>>>(), 32);
+}
+
+#[inline(always)]
+fn encode_index(index: usize) -> NonZeroUsize {
+    debug_assert!(index <= isize::MAX as usize);
+    // SAFETY: Vec ensure they never allocate more than isize::MAX bytes.
+    unsafe { NonZeroUsize::new_unchecked(index.wrapping_add(1)) }
+}
+
+#[inline(always)]
+fn decode_index(index: NonZeroUsize) -> usize {
+    index.get() - 1
+}
+
 /// Node that contains user data
 #[derive(Debug, Clone)]
 struct Node<T> {
-    parent_index: Option<usize>,
+    parent_index: Option<NonZeroUsize>,
     data: T,
 }
 
@@ -77,7 +95,7 @@ where
         index
     }
     fn add_edge(&mut self, q1_index: usize, q2_index: usize) {
-        self.vertices[q2_index].parent_index = Some(q1_index);
+        self.vertices[q2_index].parent_index = Some(encode_index(q1_index));
     }
     fn get_nearest_index(&self, q: &[N]) -> usize {
         *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
@@ -129,7 +147,7 @@ where
         let mut nodes = Vec::new();
         let mut cur_index = index;
         while let Some(parent_index) = self.vertices[cur_index].parent_index {
-            cur_index = parent_index;
+            cur_index = decode_index(parent_index);
             nodes.push(self.vertices[cur_index].data.clone())
         }
         nodes
