@@ -5,11 +5,17 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '0 15 * * *'
 
 env:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: -D warnings
   RUST_BACKTRACE: 1
+  RUSTDOCFLAGS: -D warnings
+  RUSTFLAGS: -D warnings
+  RUSTUP_MAX_RETRIES: 10
 
 defaults:
   run:
@@ -26,7 +32,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install xorg-dev libglu1-mesa-dev
-      - run: cargo fmt -- --check
+      - run: cargo fmt --all --check
       - run: cargo clippy --all-targets
       - run: cargo build
       - run: cargo test
