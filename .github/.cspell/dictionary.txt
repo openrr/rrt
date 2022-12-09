@@ -1,0 +1,10 @@
+clippy
+kdtree
+libglu
+nalgebra
+ncollide
+rustdocflags
+rustflags
+rustfmt
+rustup
+xorg
