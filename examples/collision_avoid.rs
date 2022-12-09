@@ -38,14 +38,14 @@ impl CollisionProblem {
             na::zero(),
         );
         let prediction = 0.1;
-        let ctct = query::proximity(
+        let contact_state = query::proximity(
             &ball_pos,
             &self.ball,
             &cuboid_pos,
             &self.obstacle,
             prediction,
         );
-        ctct == Proximity::Disjoint
+        contact_state == Proximity::Disjoint
     }
     fn random_sample(&self) -> Vec<f64> {
         let between = Uniform::new(-4.0, 4.0);
@@ -82,17 +82,17 @@ fn main() {
     c2.set_color(0.0, 1.0, 1.0);
     let start = [0.2f64, 0.2, 0.2];
     let goal = [-0.2f64, -0.2, -0.2];
-    let poss = Isometry3::new(
+    let start_pos = Isometry3::new(
         Vector3::new(start[0] as f32, start[1] as f32, start[2] as f32),
         na::zero(),
     );
-    let posg = Isometry3::new(
+    let goal_pos = Isometry3::new(
         Vector3::new(goal[0] as f32, goal[1] as f32, goal[2] as f32),
         na::zero(),
     );
 
-    cs.set_local_transformation(poss);
-    cg.set_local_transformation(posg);
+    cs.set_local_transformation(start_pos);
+    cg.set_local_transformation(goal_pos);
     let mut path = vec![];
     let mut index = 0;
     while window.render() {
