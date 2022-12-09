@@ -1,5 +1,4 @@
 clippy
-kdtree
 libglu
 nalgebra
 ncollide
