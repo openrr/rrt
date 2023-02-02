@@ -23,7 +23,7 @@ use num_traits::identities::Zero;
 use rand::distributions::{Distribution, Uniform};
 use std::fmt::Debug;
 use std::mem;
-use tracing::info;
+use tracing::debug;
 
 #[derive(Debug)]
 enum ExtendStatus {
@@ -99,15 +99,15 @@ where
                 .map(|(near, target)| *near + (*target - *near) * extend_length / diff_dist)
                 .collect::<Vec<_>>()
         };
-        info!("q_new={q_new:?}");
+        debug!("q_new={q_new:?}");
         if is_free(&q_new) {
             let new_index = self.add_vertex(&q_new);
             self.add_edge(nearest_index, new_index);
             if squared_euclidean(&q_new, q_target).sqrt() < extend_length {
                 return ExtendStatus::Reached(new_index);
             }
-            info!("target = {q_target:?}");
-            info!("advanced to {q_target:?}");
+            debug!("target = {q_target:?}");
+            debug!("advanced to {q_target:?}");
             return ExtendStatus::Advanced(new_index);
         }
         ExtendStatus::Trapped
@@ -117,7 +117,7 @@ where
         FF: FnMut(&[N]) -> bool,
     {
         loop {
-            info!("connecting...{q_target:?}");
+            debug!("connecting...{q_target:?}");
             match self.extend(q_target, extend_length, is_free) {
                 ExtendStatus::Trapped => return ExtendStatus::Trapped,
                 ExtendStatus::Reached(index) => return ExtendStatus::Reached(index),
@@ -156,8 +156,8 @@ where
     tree_a.add_vertex(start);
     tree_b.add_vertex(goal);
     for _ in 0..num_max_try {
-        info!("tree_a = {:?}", tree_a.vertices.len());
-        info!("tree_b = {:?}", tree_b.vertices.len());
+        debug!("tree_a = {:?}", tree_a.vertices.len());
+        debug!("tree_b = {:?}", tree_b.vertices.len());
         let q_rand = random_sample();
         let extend_status = tree_a.extend(&q_rand, extend_length, &mut is_free);
         match extend_status {
