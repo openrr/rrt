@@ -1,6 +1,6 @@
 [package]
 name = "rrt"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Takashi Ogura <t.ogura@gmail.com>"]
 edition = "2021"
 description = "Path finding using dual-RRT connect"
