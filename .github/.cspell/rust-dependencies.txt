@@ -2,7 +2,3 @@
 // It is not intended for manual editing.
 
 kdtree
-kiss
-rand
-tracing
-traits
