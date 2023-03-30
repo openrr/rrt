@@ -1,6 +1,6 @@
 # rrt
 
-[![Build Status](https://img.shields.io/github/workflow/status/openrr/rrt/CI/main)](https://github.com/openrr/rrt/actions) [![crates.io](https://img.shields.io/crates/v/rrt.svg)](https://crates.io/crates/rrt) [![docs](https://docs.rs/rrt/badge.svg)](https://docs.rs/rrt) [![discord](https://dcbadge.vercel.app/api/server/8DAFFKc88B?style=flat)](https://discord.gg/8DAFFKc88B)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/openrr/rrt/ci.yml?branch=main&logo=github)](https://github.com/openrr/rrt/actions) [![crates.io](https://img.shields.io/crates/v/rrt.svg?logo=rust)](https://crates.io/crates/rrt) [![docs](https://docs.rs/rrt/badge.svg)](https://docs.rs/rrt) [![discord](https://dcbadge.vercel.app/api/server/8DAFFKc88B?style=flat)](https://discord.gg/8DAFFKc88B)
 
 RRT (Rapidly-exploring Random Tree) library in Rust.
 
