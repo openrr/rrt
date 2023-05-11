@@ -1,4 +1,3 @@
-clippy
 libglu
 nalgebra
 ncollide
@@ -6,4 +5,5 @@ rustdocflags
 rustflags
 rustfmt
 rustup
+SIGINT
 xorg
