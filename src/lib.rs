@@ -15,7 +15,7 @@
 */
 
 #![doc = include_str!("../README.md")]
-#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
+#![warn(missing_docs)]
 
 use kdtree::distance::squared_euclidean;
 use num_traits::float::Float;

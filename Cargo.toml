@@ -18,3 +18,13 @@ tracing = "0.1"
 
 [dev-dependencies]
 kiss3d = "0.35"
+
+[lints]
+workspace = true
+
+[workspace.lints.rust]
+missing_debug_implementations = "warn"
+# missing_docs = "warn" # TODO: This somehow warns examples.
+rust_2018_idioms = "warn"
+single_use_lifetimes = "warn"
+unreachable_pub = "warn"
