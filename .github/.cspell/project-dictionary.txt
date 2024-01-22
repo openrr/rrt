@@ -3,6 +3,5 @@ nalgebra
 ncollide
 rustdocflags
 rustflags
-rustfmt
 rustup
 xorg
