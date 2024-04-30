@@ -243,18 +243,25 @@ where
     let mut min_dist_to_goal = squared_euclidean(goal, start).sqrt();
 
     for _ in 0..num_max_try {
-        let q_rand = if rand::random::<f64>() < 0.1 {
-            // Bias towards goal with 10% probability
-            goal.to_vec()
-        } else {
-            random_sample()
-        };
+        // let q_rand = if rand::random::<f64>() < 0.1 {
+        //     // Bias towards goal with 10% probability
+        //     goal.to_vec()
+        // } else {
+        //     random_sample()
+        // };
+        let q_rand = random_sample();
 
         match tree.extend_rewire(&q_rand, extend_length, &mut is_free) {
-            ExtendStatus::Trapped => continue,
+            ExtendStatus::Trapped => {
+                println!("trapped");
+                continue;
+            }
             ExtendStatus::Advanced(index) | ExtendStatus::Reached(index) => {
+                println!("advanced or reached");
                 let new_point = &tree.vertices[index].data;
                 let dist_to_goal = squared_euclidean(goal, new_point).sqrt();
+
+                // Update the closest point to the goal
                 if dist_to_goal < min_dist_to_goal {
                     closest_to_goal = new_point.clone();
                     min_dist_to_goal = dist_to_goal;
@@ -269,6 +276,8 @@ where
             }
         }
     }
+
+    println!("closest_to_goal = {:?}", closest_to_goal);
 
     // If no direct connection to the goal is possible, return the path to the closest point
     let index_of_closest = tree
