@@ -31,82 +31,59 @@ enum ExtendStatus {
     Advanced(usize),
     Trapped,
 }
+trait Data: Float + Zero + Debug {}
+trait Weight: PartialOrd + Copy {}
 
 /// Node that contains user data
 #[derive(Debug, Clone)]
-struct Node<T> {
+struct Node<T, W> {
     parent_index: Option<usize>,
     data: T,
+    weight: W,
 }
 
-impl<T> Node<T> {
-    fn new(data: T) -> Self {
+// type RrtStarNode<T> = Node<T, f32>;
+// type RrtNode<T> = Node<T, ()>;
+
+impl<T, W> Node<T, W> {
+    fn new(data: T, weight: W) -> Self {
         Node {
             parent_index: None,
             data,
+            weight,
         }
     }
 }
+
+// #[derive(Debug)]
+// struct StarData<T> {
+//     point: Vec<T>,
+//     acc_length: T,
+// }
 
 /// RRT
 #[derive(Debug)]
-struct Tree<N>
+struct Tree<T, W, S>
 where
-    N: Float + Zero + Debug,
+    T: Data,
 {
-    kdtree: kdtree::KdTree<N, usize, Vec<N>>,
-    vertices: Vec<Node<Vec<N>>>,
+    kdtree: kdtree::KdTree<T, usize, Vec<T>>,
+    vertices: Vec<Node<Vec<T>, W>>,
+
     name: &'static str,
+    _marker: std::marker::PhantomData<S>,
 }
 
-impl<N> Tree<N>
-where
-    N: Float + Zero + Debug,
-{
-    /// Create a new tree
-    fn new(name: &'static str, dim: usize) -> Self {
-        Tree {
-            kdtree: kdtree::KdTree::new(dim),
-            vertices: Vec::new(),
-            name,
-        }
-    }
+struct Rrt;
 
-    /// Add a vertex to the tree
-    fn add_vertex(&mut self, q: &[N]) -> usize {
-        let index = self.vertices.len();
-        self.kdtree.add(q.to_vec(), index).unwrap();
-        self.vertices.push(Node::new(q.to_vec()));
-        index
-    }
-
-    /// Add an edge between two vertices
-    fn add_edge(&mut self, q1_index: usize, q2_index: usize) {
-        self.vertices[q2_index].parent_index = Some(q1_index);
-    }
-
-    /// Get the nearest index from the tree
-    fn get_nearest_index(&self, q: &[N]) -> usize {
-        *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
-    }
-
-    /// RRT* Extension: Get the nearest indicex in a radius
-    fn get_nearest_indices_in_radius(&self, q: &[N], radius: N) -> Vec<usize> {
-        self.kdtree
-            .within(q, radius, &squared_euclidean)
-            .unwrap_or(vec![])
-            .into_iter()
-            .map(|(_, i)| *i)
-            .collect::<Vec<usize>>()
-    }
-
+impl<T: Data, W> Tree<T, W, Rrt> {
     /// RRT* Extension: Either extend this extend function to optionally reqire or make an extend_rewire
     /// Extend the tree to the target point
-    fn extend<FF>(&mut self, q_target: &[N], extend_length: N, is_free: &mut FF) -> ExtendStatus
+    fn extend<FF>(&mut self, q_target: &[T], extend_length: T, is_free: &mut FF) -> ExtendStatus
     where
-        FF: FnMut(&[N]) -> bool,
+        FF: FnMut(&[T]) -> bool,
     {
-        assert!(extend_length > N::zero());
+        assert!(extend_length > T::zero());
         let nearest_index = self.get_nearest_index(q_target);
         let nearest_q = &self.vertices[nearest_index].data;
         let diff_dist = squared_euclidean(q_target, nearest_q).sqrt();
@@ -121,7 +98,7 @@ where
         };
         debug!("q_new={q_new:?}");
         if is_free(&q_new) {
-            let new_index = self.add_vertex(&q_new);
+            let new_index = self.add_vertex(&q_new, ());
             self.add_edge(nearest_index, new_index);
             if squared_euclidean(&q_new, q_target).sqrt() < extend_length {
                 return ExtendStatus::Reached(new_index);
@@ -132,18 +109,76 @@ where
         }
         ExtendStatus::Trapped
     }
+}
+
+struct RrtStar;
+
+impl<T: Data, W: Weight> Tree<T, W, RrtStar> {}
+
+// /// RRT*
+// #[derive(Debug)]
+// struct StarTree<T>
+// where
+//     T: Float + Zero + Debug,
+// {
+//     kdtree: kdtree::KdTree<T, usize, Vec<T>>,
+//     vertices: Vec<RrtStarNode<Vec<T>>>,
+//     // vertices: Vec<Node<StarData<T>>>,
+// }
+
+// Tree<Rrt>
+// Tree<RrtStar>
+
+impl<T: Data, S> Tree<T, (), S> {
+    /// Create a new tree
+    fn new(name: &'static str, dim: usize) -> Self {
+        Tree {
+            kdtree: kdtree::KdTree::new(dim),
+            vertices: Vec::new(),
+            name,
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    /// Add a vertex to the tree
+    fn add_vertex(&mut self, q: &[T]) -> usize {
+        let index = self.vertices.len();
+        self.kdtree.add(q.to_vec(), index).unwrap();
+        self.vertices.push(Node::new(q.to_vec(), ()));
+        index
+    }
+
+    /// Add an edge between two vertices
+    fn add_edge(&mut self, q1_index: usize, q2_index: usize) {
+        self.vertices[q2_index].parent_index = Some(q1_index);
+    }
+
+    /// Get the nearest index from the tree
+    fn get_nearest_index(&self, q: &[T]) -> usize {
+        *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
+    }
+
+    /// RRT* Extension: Get the nearest indicex in a radius
+    fn get_nearest_indices_in_radius(&self, q: &[T], radius: T) -> Vec<usize> {
+        self.kdtree
+            .within(q, radius, &squared_euclidean)
+            .unwrap_or(vec![])
+            .into_iter()
+            .map(|(_, i)| *i)
+            .collect::<Vec<usize>>()
+    }
 
     /// RRT* Extend Function with Rewiring
     fn extend_rewire<FF>(
         &mut self,
-        q_target: &[N],
-        extend_length: N,
+        q_target: &[T],
+        extend_length: T,
         is_free: &mut FF,
     ) -> ExtendStatus
     where
-        FF: FnMut(&[N]) -> bool,
+        FF: FnMut(&[T]) -> bool,
     {
-        assert!(extend_length > N::zero());
+        assert!(extend_length > T::zero());
         let nearest_index = self.get_nearest_index(q_target);
         let nearest_q = &self.vertices[nearest_index].data;
         let diff_dist = squared_euclidean(q_target, nearest_q).sqrt();
@@ -196,9 +231,9 @@ where
     }
 
     /// Connect the tree to the target point
-    fn connect<FF>(&mut self, q_target: &[N], extend_length: N, is_free: &mut FF) -> ExtendStatus
+    fn connect<FF>(&mut self, q_target: &[T], extend_length: T, is_free: &mut FF) -> ExtendStatus
     where
-        FF: FnMut(&[N]) -> bool,
+        FF: FnMut(&[T]) -> bool,
     {
         loop {
             debug!("connecting...{q_target:?}");
@@ -211,7 +246,7 @@ where
     }
 
     /// Get all nodes from leaf to the root
-    fn get_until_root(&self, index: usize) -> Vec<Vec<N>> {
+    fn get_until_root(&self, index: usize) -> Vec<Vec<T>> {
         let mut nodes = Vec::new();
         let mut cur_index = index;
         while let Some(parent_index) = self.vertices[cur_index].parent_index {
@@ -236,7 +271,7 @@ where
     FR: Fn() -> Vec<N>,
     N: Float + Debug,
 {
-    let mut tree = Tree::new("rrt_star", start.len());
+    let mut tree = StarTree::new(start.len());
     tree.add_vertex(start);
 
     let mut closest_to_goal = start.to_vec();
