@@ -10,5 +10,5 @@ Cargo.lock
 **/*.rs.bk
 *~
 
-flake.lock
+# flake.lock
 .direnv

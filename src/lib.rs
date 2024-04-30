@@ -429,30 +429,57 @@ pub fn smooth_path<FF, N>(
     }
 }
 
-#[test]
-fn it_works() {
-    use rand::distributions::{Distribution, Uniform};
-    let mut result = dual_rrt_connect(
-        &[-1.2, 0.0],
-        &[1.2, 0.0],
-        |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
-        || {
-            let between = Uniform::new(-2.0, 2.0);
-            let mut rng = rand::thread_rng();
-            vec![between.sample(&mut rng), between.sample(&mut rng)]
-        },
-        0.2,
-        1000,
-    )
-    .unwrap();
-    println!("{result:?}");
-    assert!(result.len() >= 4);
-    smooth_path(
-        &mut result,
-        |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
-        0.2,
-        100,
-    );
-    println!("{result:?}");
-    assert!(result.len() >= 3);
+// All tests
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_rrt_dual_connect() {
+        use rand::distributions::{Distribution, Uniform};
+        let mut result = dual_rrt_connect(
+            &[-1.2, 0.0],
+            &[1.2, 0.0],
+            |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+            || {
+                let between = Uniform::new(-2.0, 2.0);
+                let mut rng = rand::thread_rng();
+                vec![between.sample(&mut rng), between.sample(&mut rng)]
+            },
+            0.2,
+            1000,
+        )
+        .unwrap();
+        println!("{result:?}");
+        assert!(result.len() >= 4);
+        smooth_path(
+            &mut result,
+            |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+            0.2,
+            100,
+        );
+        println!("{result:?}");
+        assert!(result.len() >= 3);
+    }
+
+    #[test]
+    fn test_rrt_star_connect() {
+        use rand::distributions::{Distribution, Uniform};
+        let mut result = rrt_star_connect(
+            &[-1.2, 0.0],
+            &[1.2, 0.0],
+            |p: &[f64]| !(p[0].abs() < 1.0 && p[1].abs() < 1.0),
+            || {
+                let between = Uniform::new(-2.0, 2.0);
+                let mut rng = rand::thread_rng();
+                vec![between.sample(&mut rng), between.sample(&mut rng)]
+            },
+            0.2,
+            1000,
+        )
+        .unwrap();
+
+        println!("{result:?}");
+        assert!(result.len() >= 3);
+    }
 }
