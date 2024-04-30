@@ -176,16 +176,22 @@ where
                     if squared_euclidean(&q_new, neighbor_q)
                         < squared_euclidean(&self.vertices[parent_index].data, neighbor_q)
                     {
+                        println!("3. REWIRE");
                         self.vertices[unpacked_neighbor_index].parent_index = Some(new_index);
                     }
                 }
             }
 
             if squared_euclidean(&q_new, q_target) < extend_length {
+                println!("4. REACHED");
                 return ExtendStatus::Reached(new_index);
             }
+
+            println!("5. ADVANCED");
             return ExtendStatus::Advanced(new_index);
         }
+
+        println!("6. TRAPPED");
         ExtendStatus::Trapped
     }
 
