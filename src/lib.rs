@@ -159,7 +159,7 @@ where
 
         // If no collision is detected, add the new point to the tree
         if is_free(&q_new) {
-            println!("1. FREE")
+            println!("1. FREE");
             let new_index = self.add_vertex(&q_new);
             self.add_edge(nearest_index, new_index);
 
