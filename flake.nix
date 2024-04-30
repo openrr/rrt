@@ -30,21 +30,6 @@
       ];
       rust-targets = ["wasm32-unknown-unknown"];
       # wgsl-analyzer-pkgs = import inputs.wgsl_analyzer {inherit system;};
-      bevy-deps = with pkgs; [
-        udev
-        alsa-lib
-        vulkan-loader
-        xorg.libX11
-        xorg.libXcursor
-        xorg.libXi
-        xorg.libXrandr
-        libxkbcommon
-        wayland
-        egl-wayland
-        # wgsl-analyzer-pkgs.wgsl_analyzer
-        # wgsl_analyzer.packages.${system}
-        # wgsl_analyzer.outputs.packages.${system}.default
-      ];
       cargo-subcommands = with pkgs; [
         cargo-bloat
         cargo-expand
@@ -103,30 +88,9 @@
                     targets = ["wasm32-unknown-unknown"];
                   })
               )
-
-              nodejs
               just
-              typos
-              freetype
-              fontconfig
-              act
-              trunk # rust wasm bundler
-              wasm-bindgen-cli
-              # binaryen # wasm-opt
-              sass
-              tailwindcss
-              d2
-              graphviz
-              dot-language-server
-              openblas
-              openssl
-              # lapack
-              gcc
-              gfortran
-              zlib
               gh
             ]
-            ++ bevy-deps
             ++ rust-deps;
 
           LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;

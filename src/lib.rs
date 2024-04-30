@@ -63,6 +63,7 @@ impl<N> Tree<N>
 where
     N: Float + Zero + Debug,
 {
+    /// Create a new tree
     fn new(name: &'static str, dim: usize) -> Self {
         Tree {
             kdtree: kdtree::KdTree::new(dim),
@@ -70,18 +71,37 @@ where
             name,
         }
     }
+
+    /// Add a vertex to the tree
     fn add_vertex(&mut self, q: &[N]) -> usize {
         let index = self.vertices.len();
         self.kdtree.add(q.to_vec(), index).unwrap();
         self.vertices.push(Node::new(q.to_vec()));
         index
     }
+
+    /// Add an edge between two vertices
     fn add_edge(&mut self, q1_index: usize, q2_index: usize) {
         self.vertices[q2_index].parent_index = Some(q1_index);
     }
+
+    /// Get the nearest index from the tree
     fn get_nearest_index(&self, q: &[N]) -> usize {
         *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
     }
+
+    /// RRT* Extension: Get the nearest indicex in a radius
+    fn get_nearest_indices_in_radius(&self, q: &[N], radius: N) -> Vec<usize> {
+        self.kdtree
+            .within(q, radius, &squared_euclidean)
+            .unwrap_or(vec![])
+            .into_iter()
+            .map(|(_, i)| *i)
+            .collect::<Vec<usize>>()
+    }
+
+    /// RRT* Extension: Either extend this extend function to optionally reqire or make an extend_rewire
+    /// Extend the tree to the target point
     fn extend<FF>(&mut self, q_target: &[N], extend_length: N, is_free: &mut FF) -> ExtendStatus
     where
         FF: FnMut(&[N]) -> bool,
@@ -112,6 +132,58 @@ where
         }
         ExtendStatus::Trapped
     }
+
+    /// RRT* Extend Function with Rewiring
+    fn extend_rewire<FF>(
+        &mut self,
+        q_target: &[N],
+        extend_length: N,
+        is_free: &mut FF,
+    ) -> ExtendStatus
+    where
+        FF: FnMut(&[N]) -> bool,
+    {
+        assert!(extend_length > N::zero());
+        let nearest_index = self.get_nearest_index(q_target);
+        let nearest_q = &self.vertices[nearest_index].data;
+        let diff_dist = squared_euclidean(q_target, nearest_q).sqrt();
+        let q_new = if diff_dist < extend_length {
+            q_target.to_vec()
+        } else {
+            nearest_q
+                .iter()
+                .zip(q_target)
+                .map(|(near, target)| *near + (*target - *near) * extend_length / diff_dist)
+                .collect::<Vec<_>>()
+        };
+        if is_free(&q_new) {
+            let new_index = self.add_vertex(&q_new);
+            self.add_edge(nearest_index, new_index);
+
+            // Rewiring process
+            let neighbors = self.get_nearest_indices_in_radius(&q_new, extend_length);
+            for &neighbor_index in &neighbors {
+                let neighbor_q = &self.vertices[neighbor_index].data;
+                if squared_euclidean(&q_new, neighbor_q).sqrt()
+                    < squared_euclidean(
+                        &self.vertices[self.vertices[neighbor_index].parent_index.unwrap()].data,
+                        neighbor_q,
+                    )
+                    .sqrt()
+                {
+                    self.vertices[neighbor_index].parent_index = Some(new_index);
+                }
+            }
+
+            if squared_euclidean(&q_new, q_target).sqrt() < extend_length {
+                return ExtendStatus::Reached(new_index);
+            }
+            return ExtendStatus::Advanced(new_index);
+        }
+        ExtendStatus::Trapped
+    }
+
+    /// Connect the tree to the target point
     fn connect<FF>(&mut self, q_target: &[N], extend_length: N, is_free: &mut FF) -> ExtendStatus
     where
         FF: FnMut(&[N]) -> bool,
@@ -125,6 +197,8 @@ where
             };
         }
     }
+
+    /// Get all nodes from leaf to the root
     fn get_until_root(&self, index: usize) -> Vec<Vec<N>> {
         let mut nodes = Vec::new();
         let mut cur_index = index;
@@ -134,6 +208,63 @@ where
         }
         nodes
     }
+}
+
+/// RRT* Extension: connect with RRT* algorithm
+pub fn rrt_star_connect<FF, FR, N>(
+    start: &[N],
+    goal: &[N],
+    mut is_free: FF,
+    random_sample: FR,
+    extend_length: N,
+    num_max_try: usize,
+) -> Result<Vec<Vec<N>>, String>
+where
+    FF: FnMut(&[N]) -> bool,
+    FR: Fn() -> Vec<N>,
+    N: Float + Debug,
+{
+    let mut tree = Tree::new("rrt_star", start.len());
+    tree.add_vertex(start);
+
+    let mut closest_to_goal = start.to_vec();
+    let mut min_dist_to_goal = squared_euclidean(goal, start).sqrt();
+
+    for _ in 0..num_max_try {
+        let q_rand = if rand::random::<f64>() < 0.1 {
+            // Bias towards goal with 10% probability
+            goal.to_vec()
+        } else {
+            random_sample()
+        };
+
+        match tree.extend_rewire(&q_rand, extend_length, &mut is_free) {
+            ExtendStatus::Trapped => continue,
+            ExtendStatus::Advanced(index) | ExtendStatus::Reached(index) => {
+                let new_point = &tree.vertices[index].data;
+                let dist_to_goal = squared_euclidean(goal, new_point).sqrt();
+                if dist_to_goal < min_dist_to_goal {
+                    closest_to_goal = new_point.clone();
+                    min_dist_to_goal = dist_to_goal;
+                }
+
+                // Try to connect directly to goal if close enough
+                if dist_to_goal < extend_length && is_free(goal) {
+                    tree.add_vertex(goal);
+                    tree.add_edge(index, tree.vertices.len() - 1);
+                    return Ok(tree.get_until_root(tree.vertices.len() - 1));
+                }
+            }
+        }
+    }
+
+    // If no direct connection to the goal is possible, return the path to the closest point
+    let index_of_closest = tree
+        .vertices
+        .iter()
+        .position(|v| v.data == closest_to_goal)
+        .unwrap();
+    Ok(tree.get_until_root(index_of_closest))
 }
 
 /// search the path from start to goal which is free, using random_sample function
