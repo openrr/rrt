@@ -162,20 +162,21 @@ where
 
             // Rewiring process
             let neighbors = self.get_nearest_indices_in_radius(&q_new, extend_length);
+            // Update parent if the new point is closer to the neighbor
             for &neighbor_index in &neighbors {
-                let neighbor_q = &self.vertices[neighbor_index].data;
-                if squared_euclidean(&q_new, neighbor_q).sqrt()
-                    < squared_euclidean(
-                        &self.vertices[self.vertices[neighbor_index].parent_index.unwrap()].data,
-                        neighbor_q,
-                    )
-                    .sqrt()
-                {
-                    self.vertices[neighbor_index].parent_index = Some(new_index);
+                // Skip if the neighbor doesn't have a parent
+                if let Some(parent_index) = self.vertices[neighbor_index].parent_index {
+                    let neighbor_q = &self.vertices[neighbor_index].data;
+                    // Update parent if the new point is closer to the neighbor
+                    if squared_euclidean(&q_new, neighbor_q)
+                        < squared_euclidean(&self.vertices[parent_index].data, neighbor_q)
+                    {
+                        self.vertices[neighbor_index].parent_index = Some(new_index);
+                    }
                 }
             }
 
-            if squared_euclidean(&q_new, q_target).sqrt() < extend_length {
+            if squared_euclidean(&q_new, q_target) < extend_length {
                 return ExtendStatus::Reached(new_index);
             }
             return ExtendStatus::Advanced(new_index);
