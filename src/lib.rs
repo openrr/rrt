@@ -287,7 +287,11 @@ where
         .unwrap();
 
     println!("index_of_closest = {:?}", index_of_closest);
-    Ok(tree.get_until_root(index_of_closest))
+
+    let path = tree.get_until_root(index_of_closest);
+
+    println!("path = {:?}", path);
+    Ok(path)
 }
 
 /// search the path from start to goal which is free, using random_sample function
