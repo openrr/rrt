@@ -156,22 +156,27 @@ where
                 .map(|(near, target)| *near + (*target - *near) * extend_length / diff_dist)
                 .collect::<Vec<_>>()
         };
+
+        // If no collision is detected, add the new point to the tree
         if is_free(&q_new) {
+            println!("1. FREE")
             let new_index = self.add_vertex(&q_new);
             self.add_edge(nearest_index, new_index);
 
             // Rewiring process
             let neighbors = self.get_nearest_indices_in_radius(&q_new, extend_length);
             // Update parent if the new point is closer to the neighbor
-            for &neighbor_index in &neighbors {
+            for (i, neighbor_index) in neighbors.chunks(1).enumerate() {
+                let unpacked_neighbor_index = neighbor_index[0];
+                println!("2. NEIGHBOR {} with index {}", i, unpacked_neighbor_index);
                 // Skip if the neighbor doesn't have a parent
-                if let Some(parent_index) = self.vertices[neighbor_index].parent_index {
-                    let neighbor_q = &self.vertices[neighbor_index].data;
+                if let Some(parent_index) = self.vertices[unpacked_neighbor_index].parent_index {
+                    let neighbor_q = &self.vertices[unpacked_neighbor_index].data;
                     // Update parent if the new point is closer to the neighbor
                     if squared_euclidean(&q_new, neighbor_q)
                         < squared_euclidean(&self.vertices[parent_index].data, neighbor_q)
                     {
-                        self.vertices[neighbor_index].parent_index = Some(new_index);
+                        self.vertices[unpacked_neighbor_index].parent_index = Some(new_index);
                     }
                 }
             }
