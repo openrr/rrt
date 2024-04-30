@@ -285,6 +285,8 @@ where
         .iter()
         .position(|v| v.data == closest_to_goal)
         .unwrap();
+
+    println!("index_of_closest = {:?}", index_of_closest);
     Ok(tree.get_until_root(index_of_closest))
 }
 
