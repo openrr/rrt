@@ -242,7 +242,9 @@ where
         }
     }
 
-    Err(RRTStarError::MaxItersReached)
+    return Ok(tree);
+
+    // Err(RRTStarError::MaxItersReached)
 }
 
 /// select random two points, and try to connect.
