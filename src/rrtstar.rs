@@ -204,8 +204,8 @@ where
 
         let new_index = tree.add_vertex(&q_new, cost_min);
         // 5.3. Connect to lowest cost path
-        let min_index = std::iter::once(&new_index)
-            .chain(nearest.iter())
+        let min_index = nearest
+            .iter()
             .min_by(|&a, &b| {
                 tree.vertices[*a]
                     .weight
