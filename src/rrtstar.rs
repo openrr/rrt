@@ -65,6 +65,20 @@ where
     pub vertices: Vec<Node<Vec<N>, W>>,
 }
 
+// impl default for Tree
+impl<N, W> Default for Tree<N, W>
+where
+    N: Float + Zero + Debug,
+    W: Weight,
+{
+    fn default() -> Self {
+        Tree {
+            kdtree: kdtree::KdTree::new(2),
+            vertices: Vec::new(),
+        }
+    }
+}
+
 impl<N, W> Tree<N, W>
 where
     N: Float + Zero + Debug,
@@ -98,53 +112,6 @@ where
     fn get_nearest_index(&self, q: &[N]) -> usize {
         *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
     }
-
-    //
-    // fn extend<FF>(&mut self, q_target: &[N], extend_length: N, is_free: &mut FF) -> ExtendStatus
-    // where
-    //     FF: FnMut(&[N]) -> bool,
-    // {
-    //     assert!(extend_length > N::zero());
-    //     let nearest_index = self.get_nearest_index(q_target);
-    //     let nearest_q = &self.vertices[nearest_index].data;
-    //     let diff_dist = squared_euclidean(q_target, nearest_q).sqrt();
-    //     let q_new = if diff_dist < extend_length {
-    //         q_target.to_vec()
-    //     } else {
-    //         nearest_q
-    //             .iter()
-    //             .zip(q_target)
-    //             .map(|(near, target)| *near + (*target - *near) * extend_length / diff_dist)
-    //             .collect::<Vec<_>>()
-    //     };
-    //     debug!("q_new={q_new:?}");
-    //     if is_free(&q_new) {
-    //         let new_index = self.add_vertex(&q_new);
-    //         self.add_edge(nearest_index, new_index);
-    //         if squared_euclidean(&q_new, q_target).sqrt() < extend_length {
-    //             return ExtendStatus::Reached(new_index);
-    //         }
-    //         debug!("target = {q_target:?}");
-    //         debug!("advanced to {q_target:?}");
-    //         return ExtendStatus::Advanced(new_index);
-    //     }
-    //     ExtendStatus::Trapped
-    // }
-
-    //
-    // fn connect<FF>(&mut self, q_target: &[N], extend_length: N, is_free: &mut FF) -> ExtendStatus
-    // where
-    //     FF: FnMut(&[N]) -> bool,
-    // {
-    //     loop {
-    //         debug!("connecting...{q_target:?}");
-    //         match self.extend(q_target, extend_length, is_free) {
-    //             ExtendStatus::Trapped => return ExtendStatus::Trapped,
-    //             ExtendStatus::Reached(index) => return ExtendStatus::Reached(index),
-    //             ExtendStatus::Advanced(_) => {}
-    //         };
-    //     }
-    // }
 
     fn get_until_root(&self, index: usize) -> Vec<Vec<N>> {
         let mut nodes = Vec::new();
