@@ -155,6 +155,7 @@ pub fn rrtstar<N>(
     random_sample: impl Fn() -> Vec<N>,
     extend_length: N,
     max_iters: usize,
+    stop_when_reach_goal: bool,
 ) -> RRTStarResult<N, f32>
 // ) -> Result<Vec<Vec<N>>, RRTStarError>
 where
@@ -220,16 +221,9 @@ where
                 a_potential_weight
                     .partial_cmp(&b_potential_weight)
                     .expect("Weight W of two nodes should be comparable")
-                // tree.vertices[*a]
-                //     .weight
-                //     .partial_cmp(&tree.vertices[*b].weight)
-                //     .unwrap()
             })
             .expect("iterator shouldn't be empty");
 
-        if *min_index == new_index {
-            eprintln!("WARN!\tmin_index == new_index")
-        }
         tree.add_edge(*min_index, new_index);
 
         // 5.4. Rewire
@@ -244,15 +238,12 @@ where
             if new_potential_cost < near_weight {
                 tree.remove_edge(near_index);
                 tree.add_edge(new_index, near_index);
-                if near_index == *min_index {
-                    eprintln!("WARN!\tnear_index == min_index")
-                }
                 tree.vertices[near_index].weight = new_potential_cost;
             }
         }
 
         // 6. Check if the goal is reached
-        if squared_euclidean(&q_new, goal).sqrt() < extend_length {
+        if stop_when_reach_goal && squared_euclidean(&q_new, goal).sqrt() < extend_length {
             let goal_index = tree.add_vertex(goal, 0.0);
             tree.add_edge(new_index, goal_index);
             // let mut path = tree.get_until_root(goal_index);
