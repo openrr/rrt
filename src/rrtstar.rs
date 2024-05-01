@@ -151,7 +151,7 @@ pub type RRTStarResult<N, W> = Result<Tree<N, W>, RRTStarError>;
 pub fn rrtstar<N>(
     start: &[N],
     goal: &[N],
-    mut is_free: impl FnMut(&[N]) -> bool,
+    mut is_collision_free: impl FnMut(&[N]) -> bool,
     random_sample: impl Fn() -> Vec<N>,
     extend_length: N,
     max_iters: usize,
@@ -187,7 +187,7 @@ where
         };
 
         // 4. Check if the new point is free
-        if !is_free(&q_new) {
+        if !is_collision_free(&q_new) {
             continue;
         }
 
@@ -199,18 +199,31 @@ where
         let edge_weight = <f32 as num_traits::cast::NumCast>::from::<N>(extend_length)
             .expect("N implements Float, same as W");
         let cost_min = parent_weight + edge_weight;
-        // + num_traits::cast::NumCast::from::<N>(extend_length)
-        // .expect("N implements Float, same as W");
 
         let new_index = tree.add_vertex(&q_new, cost_min);
         // 5.3. Connect to lowest cost path
-        let min_index = nearest
-            .iter()
+        let min_index = std::iter::once(&nearest_index)
+            .chain(nearest.iter())
             .min_by(|&a, &b| {
-                tree.vertices[*a]
-                    .weight
-                    .partial_cmp(&tree.vertices[*b].weight)
-                    .unwrap()
+                let a_potential_weight = tree.vertices[*a].weight
+                    + <f32 as num_traits::cast::NumCast>::from(
+                        squared_euclidean(&q_new, &tree.vertices[*a].data).sqrt(),
+                    )
+                    .expect("N implements Float, same as W");
+
+                let b_potential_weight = tree.vertices[*b].weight
+                    + <f32 as num_traits::cast::NumCast>::from(
+                        squared_euclidean(&q_new, &tree.vertices[*b].data).sqrt(),
+                    )
+                    .expect("N implements Float, same as W");
+
+                a_potential_weight
+                    .partial_cmp(&b_potential_weight)
+                    .expect("Weight W of two nodes should be comparable")
+                // tree.vertices[*a]
+                //     .weight
+                //     .partial_cmp(&tree.vertices[*b].weight)
+                //     .unwrap()
             })
             .expect("iterator shouldn't be empty");
 
