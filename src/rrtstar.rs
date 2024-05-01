@@ -169,6 +169,8 @@ where
     let mut tree = Tree::<N, f32>::new(start.len());
     tree.add_vertex(start, 0.0);
 
+    let mut goal_reached = false;
+
     // Path finding loop
     for _ in 0..max_iters {
         // 1. Random sample
@@ -244,13 +246,18 @@ where
         }
 
         // 6. Check if the goal is reached
-        if stop_when_reach_goal && squared_euclidean(&q_new, goal).sqrt() < extend_length {
-            let goal_index = tree.add_vertex(goal, 0.0);
+        if !goal_reached && squared_euclidean(&q_new, goal).sqrt() < extend_length {
+            let goal_weight = tree.vertices[new_index].weight
+                + <f32 as num_traits::cast::NumCast>::from(squared_euclidean(&q_new, goal).sqrt())
+                    .expect("N implements Float, same as W");
+            let goal_index = tree.add_vertex(goal, goal_weight);
             tree.add_edge(new_index, goal_index);
-            // let mut path = tree.get_until_root(goal_index);
-            // path.push(goal.to_vec());
-            // return Ok(path);
-            return Ok(tree);
+
+            goal_reached = true;
+
+            if stop_when_reach_goal {
+                return Ok(tree);
+            }
         }
     }
 
