@@ -97,7 +97,7 @@ fn main() {
     let mut index = 0;
     while window.render() {
         if index == path.len() {
-            path = rrt::dual_rrt_connect(
+            path = rrt::rrt::dual_rrt_connect(
                 &start,
                 &goal,
                 |x: &[f64]| p.is_feasible(x),
@@ -106,7 +106,7 @@ fn main() {
                 1000,
             )
             .unwrap();
-            rrt::smooth_path(&mut path, |x: &[f64]| p.is_feasible(x), 0.05, 100);
+            rrt::rrt::smooth_path(&mut path, |x: &[f64]| p.is_feasible(x), 0.05, 100);
             index = 0;
         }
         let point = &path[index % path.len()];

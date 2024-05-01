@@ -29,6 +29,21 @@
         "llvm-tools-preview" # used with `cargo-pgo`
       ];
       rust-targets = ["wasm32-unknown-unknown"];
+      bevy-deps = with pkgs; [
+        udev
+        alsa-lib
+        vulkan-loader
+        xorg.libX11
+        xorg.libXcursor
+        xorg.libXi
+        xorg.libXrandr
+        libxkbcommon
+        wayland
+        egl-wayland
+        # wgsl-analyzer-pkgs.wgsl_analyzer
+        # wgsl_analyzer.packages.${system}
+        # wgsl_analyzer.outputs.packages.${system}.default
+      ];
       # wgsl-analyzer-pkgs = import inputs.wgsl_analyzer {inherit system;};
       cargo-subcommands = with pkgs; [
         cargo-bloat
@@ -91,7 +106,7 @@
               just
               gh
             ]
-            ++ rust-deps;
+            ++ rust-deps ++ bevy-deps;
 
           LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
         };
