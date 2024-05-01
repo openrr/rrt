@@ -113,7 +113,8 @@ where
         *self.kdtree.nearest(q, 1, &squared_euclidean).unwrap()[0].1
     }
 
-    fn get_until_root(&self, index: usize) -> Vec<Vec<N>> {
+    /// Get the path from the root to the node
+    pub fn get_until_root(&self, index: usize) -> Vec<Vec<N>> {
         let mut nodes = Vec::new();
         let mut cur_index = index;
         while let Some(parent_index) = self.vertices[cur_index].parent_index {
