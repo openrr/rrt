@@ -38,10 +38,10 @@ impl Weight for f32 {}
 
 /// Node that contains user data
 #[derive(Debug, Clone)]
-struct Node<T, W: Weight> {
-    parent_index: Option<usize>,
-    data: T,
-    weight: W,
+pub struct Node<T, W: Weight> {
+    pub parent_index: Option<usize>,
+    pub data: T,
+    pub weight: W,
 }
 
 impl<T, W: Weight> Node<T, W> {
@@ -61,8 +61,8 @@ where
     N: Float + Zero + Debug,
     W: Weight,
 {
-    kdtree: kdtree::KdTree<N, usize, Vec<N>>,
-    vertices: Vec<Node<Vec<N>, W>>,
+    pub kdtree: kdtree::KdTree<N, usize, Vec<N>>,
+    pub vertices: Vec<Node<Vec<N>, W>>,
 }
 
 impl<N, W> Tree<N, W>
