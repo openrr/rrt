@@ -212,7 +212,11 @@ where
                     .partial_cmp(&tree.vertices[*b].weight)
                     .unwrap()
             })
-            .expect("iterator not empty");
+            .expect("iterator shouldn't be empty");
+
+        if *min_index == new_index {
+            eprintln!("WARN!\tmin_index == new_index")
+        }
         tree.add_edge(*min_index, new_index);
 
         // 5.4. Rewire
@@ -227,6 +231,9 @@ where
             if new_potential_cost < near_weight {
                 tree.remove_edge(near_index);
                 tree.add_edge(new_index, near_index);
+                if near_index == *min_index {
+                    eprintln!("WARN!\tnear_index == min_index")
+                }
                 tree.vertices[near_index].weight = new_potential_cost;
             }
         }
