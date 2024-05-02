@@ -156,6 +156,7 @@ pub fn rrtstar<N>(
     random_sample: impl Fn() -> Vec<N>,
     extend_length: N,
     max_iters: usize,
+    neighbourhood_radius: N,
     stop_when_reach_goal: bool,
 ) -> RRTStarResult<N, f32>
 // ) -> Result<Vec<Vec<N>>, RRTStarError>
@@ -197,7 +198,7 @@ where
 
         // 5. Connect to the new point
         // 5.1. Find nearest neighbours
-        let nearest = tree.get_nearest_neighbours(&q_new, extend_length);
+        let nearest = tree.get_nearest_neighbours(&q_new, neighbourhood_radius);
         // 5.2. Insert the new point to the tree
         let parent_weight = tree.vertices[nearest_index].weight;
         let edge_weight = <f32 as num_traits::cast::NumCast>::from::<N>(extend_length)
