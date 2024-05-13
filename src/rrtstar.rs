@@ -61,8 +61,13 @@ where
     N: Float + Zero + Debug,
     W: Weight,
 {
+    /// kdtree data structure to store the nodes
+    /// for fast nearest neighbour search
     pub kdtree: kdtree::KdTree<N, usize, Vec<N>>,
+    /// Vertices of the tree
     pub vertices: Vec<Node<Vec<N>, W>>,
+    /// The goal index
+    pub goal_index: Option<usize>,
 }
 
 // impl default for Tree
@@ -75,6 +80,7 @@ where
         Tree {
             kdtree: kdtree::KdTree::new(2),
             vertices: Vec::new(),
+            goal_index: None,
         }
     }
 }
@@ -88,6 +94,7 @@ where
         Tree {
             kdtree: kdtree::KdTree::new(dim),
             vertices: Vec::new(),
+            goal_index: None,
         }
     }
 
@@ -253,6 +260,8 @@ where
                     .expect("N implements Float, same as W");
             let goal_index = tree.add_vertex(goal, goal_weight);
             tree.add_edge(new_index, goal_index);
+
+            tree.goal_index = Some(goal_index);
 
             goal_reached = true;
 
