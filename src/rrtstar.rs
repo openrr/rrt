@@ -160,7 +160,7 @@ pub fn rrtstar<N>(
     start: &[N],
     goal: &[N],
     mut is_collision_free: impl FnMut(&[N]) -> bool,
-    random_sample: impl FnMut() -> Vec<N>,
+    mut random_sample: impl FnMut() -> Vec<N>,
     extend_length: N,
     max_iters: usize,
     neighbourhood_radius: N,
