@@ -160,7 +160,7 @@ pub fn rrtstar<N>(
     start: &[N],
     goal: &[N],
     mut is_collision_free: impl FnMut(&[N]) -> bool,
-    random_sample: impl Fn() -> Vec<N>,
+    random_sample: impl FnMut() -> Vec<N>,
     extend_length: N,
     max_iters: usize,
     neighbourhood_radius: N,
@@ -258,7 +258,7 @@ where
             let goal_weight = tree.vertices[new_index].weight
                 + <f32 as num_traits::cast::NumCast>::from(squared_euclidean(&q_new, goal).sqrt())
                     .expect("N implements Float, same as W");
-            println!("goal {:?} reached with weight {}", goal, goal_weight);
+            // println!("goal {:?} reached with weight {}", goal, goal_weight);
             let goal_index = tree.add_vertex(goal, goal_weight);
             tree.add_edge(new_index, goal_index);
 
