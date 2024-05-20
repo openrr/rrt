@@ -272,9 +272,11 @@ where
         }
     }
 
-    return Ok(tree);
-
-    // Err(RRTStarError::MaxItersReached)
+    if !stop_when_reach_goal {
+        return Ok(tree);
+    } else {
+        Err(RRTStarError::MaxItersReached)
+    }
 }
 
 /// select random two points, and try to connect.
