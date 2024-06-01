@@ -20,7 +20,10 @@
 use kdtree::distance::squared_euclidean;
 use num_traits::float::Float;
 use num_traits::identities::Zero;
-use rand::distributions::{Distribution, Uniform};
+use rand::{
+    distributions::{Distribution, Uniform},
+    RngCore,
+};
 use std::fmt::Debug;
 
 // #[derive(Debug)]
@@ -285,6 +288,7 @@ pub fn smooth_path<FF, N>(
     mut is_free: FF,
     extend_length: N,
     num_max_try: usize,
+    mut rng: &mut dyn RngCore,
 ) where
     FF: FnMut(&[N]) -> bool,
     N: Float + Debug,
@@ -292,7 +296,7 @@ pub fn smooth_path<FF, N>(
     if path.len() < 3 {
         return;
     }
-    let mut rng = rand::thread_rng();
+    // let mut rng = rand::thread_rng();
     for _ in 0..num_max_try {
         let range1 = Uniform::new(0, path.len() - 2);
         let ind1 = range1.sample(&mut rng);
