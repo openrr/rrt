@@ -1,5 +1,4 @@
 libglu
-nalgebra
 ncollide
 rustdocflags
 rustflags
